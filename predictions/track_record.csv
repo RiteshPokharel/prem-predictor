@@ -1,0 +1,10 @@
+Match,Score,Pick,Chance given to result,Correct
+Man City v Fulham,1-1,Home,17%,no
+Aston Villa v Sunderland,0-0,Home,26%,no
+Bournemouth v Nott'm Forest,2-0,Home,52%,yes
+Chelsea v Leeds,1-4,Home,25%,no
+Coventry v Crystal Palace,3-2,Home,38%,yes
+Tottenham v Ipswich,2-0,Home,66%,yes
+Newcastle v Arsenal,2-2,Away,19%,no
+Hull v Brighton,2-0,Away,15%,no
+Liverpool v Man United,4-0,Home,59%,yes

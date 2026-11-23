@@ -21,6 +21,7 @@ pip install -r requirements.txt
 python src/download_data.py   # get the latest results, xG, fixtures + odds
 python src/train.py           # test the model week by week on past seasons
 python src/predict.py         # predict the next round -> predictions/
+python src/evaluate.py        # check past predictions against the real results
 ```
 
 ## How it works
