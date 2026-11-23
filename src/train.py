@@ -17,7 +17,7 @@ from sklearn.metrics import accuracy_score, log_loss
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from features import MARKET_FEATURES, STATS_FEATURES, build_features
+from features import MARKET_FEATURES, MODEL_FEATURES, STATS_FEATURES, XG_FEATURES, build_features
 
 warnings.filterwarnings("ignore", category=pd.errors.PerformanceWarning)
 
@@ -29,6 +29,8 @@ MODELS = {
     "Elo only": ["elo_diff"],
     "Elo + form": STATS_FEATURES,
     "Elo + form + odds": STATS_FEATURES + MARKET_FEATURES,
+    "Elo + form + xG + odds": STATS_FEATURES + XG_FEATURES + MARKET_FEATURES,
+    "Elo + xG + odds (final model)": MODEL_FEATURES,
 }
 
 

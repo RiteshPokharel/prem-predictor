@@ -21,6 +21,8 @@ ELO_HOME_ADV = 60      # home advantage, in Elo points
 ELO_SEASON_REGRESS = 0.2  # pull ratings 20% back to average between seasons
 
 FORM_STATS = ["points", "gf", "ga", "sotf", "sota"]
+XG_STATS = ["xgf", "xga"]   # expected goals for / against
+XG_WINDOW = 20              # tested 5/10/20 — xG works best averaged over a longer stretch
 
 
 def load_matches(raw_dir: Path = RAW_DIR) -> pd.DataFrame:
@@ -33,7 +35,19 @@ def load_matches(raw_dir: Path = RAW_DIR) -> pd.DataFrame:
         frames.append(df)
     m = pd.concat(frames, ignore_index=True)
     m["Date"] = pd.to_datetime(m["Date"], dayfirst=True, format="mixed")
-    return m.sort_values(["Date", "HomeTeam"]).reset_index(drop=True)
+    m = m.sort_values(["Date", "HomeTeam"]).reset_index(drop=True)
+    return add_xg(m, raw_dir)
+
+
+def add_xg(m: pd.DataFrame, raw_dir: Path = RAW_DIR) -> pd.DataFrame:
+    """Attach each match's xG (from src/download_xg.py). Missing before Dec 2022."""
+    path = raw_dir / "xg_matches.csv"
+    m = m.copy()
+    if not path.exists():
+        m["home_xg"] = m["away_xg"] = np.nan
+        return m
+    xg = pd.read_csv(path, dtype={"Season": str})[["Season", "HomeTeam", "AwayTeam", "home_xg", "away_xg"]]
+    return m.merge(xg, on=["Season", "HomeTeam", "AwayTeam"], how="left")
 
 
 def odds_to_probs(df: pd.DataFrame) -> pd.DataFrame:
@@ -103,22 +117,24 @@ def team_match_log(m: pd.DataFrame) -> pd.DataFrame:
     home = pd.DataFrame({
         "match_id": m.index, "Date": m["Date"], "team": m["HomeTeam"],
         "gf": m["FTHG"], "ga": m["FTAG"], "sotf": m["HST"], "sota": m["AST"],
+        "xgf": m["home_xg"], "xga": m["away_xg"],
         "points": m["FTR"].map(lambda r: pts[r][0]),
     })
     away = pd.DataFrame({
         "match_id": m.index, "Date": m["Date"], "team": m["AwayTeam"],
         "gf": m["FTAG"], "ga": m["FTHG"], "sotf": m["AST"], "sota": m["HST"],
+        "xgf": m["away_xg"], "xga": m["home_xg"],
         "points": m["FTR"].map(lambda r: pts[r][1]),
     })
     return pd.concat([home, away]).sort_values(["team", "Date"]).reset_index(drop=True)
 
 
-def add_form(m: pd.DataFrame) -> pd.DataFrame:
-    """Average of each team's last 5 matches, BEFORE the current one (shift(1) = no peeking)."""
+def add_form(m: pd.DataFrame, stats=FORM_STATS, window=FORM_WINDOW) -> pd.DataFrame:
+    """Average of each team's last N matches, BEFORE the current one (shift(1) = no peeking)."""
     log = team_match_log(m)
     rolled = (
-        log.groupby("team")[FORM_STATS]
-        .transform(lambda s: s.shift(1).rolling(FORM_WINDOW, min_periods=1).mean())
+        log.groupby("team")[stats]
+        .transform(lambda s: s.shift(1).rolling(window, min_periods=1).mean())
     )
     log = pd.concat([log[["match_id", "team"]], rolled], axis=1)
 
@@ -126,16 +142,16 @@ def add_form(m: pd.DataFrame) -> pd.DataFrame:
     m = m.copy()
     for side, team_col in (("home", "HomeTeam"), ("away", "AwayTeam")):
         keys = pd.MultiIndex.from_arrays([m.index, m[team_col]])
-        vals = log.reindex(keys)[FORM_STATS].to_numpy()
-        for i, s in enumerate(FORM_STATS):
+        vals = log.reindex(keys)[stats].to_numpy()
+        for i, s in enumerate(stats):
             m[f"{side}_{s}"] = vals[:, i]
     return m
 
 
-def latest_form(m: pd.DataFrame) -> pd.DataFrame:
-    """Each team's form over its last 5 matches up to now (for predicting future fixtures)."""
+def latest_form(m: pd.DataFrame, stats=FORM_STATS, window=FORM_WINDOW) -> pd.DataFrame:
+    """Each team's form over its last N matches up to now (for predicting future fixtures)."""
     log = team_match_log(m)
-    return log.groupby("team")[FORM_STATS].apply(lambda g: g.tail(FORM_WINDOW).mean())
+    return log.groupby("team")[stats].apply(lambda g: g.tail(window).mean())
 
 
 REST_CAP = 14  # anything over 2 weeks counts as "fully rested" (international breaks, summer)
@@ -159,7 +175,7 @@ def latest_match_date(m: pd.DataFrame) -> pd.Series:
 
 
 def add_diffs(df: pd.DataFrame) -> pd.DataFrame:
-    for s in FORM_STATS:
+    for s in FORM_STATS + XG_STATS:
         df[f"diff_{s}"] = df[f"home_{s}"] - df[f"away_{s}"]
     return df
 
@@ -167,14 +183,21 @@ def add_diffs(df: pd.DataFrame) -> pd.DataFrame:
 STATS_FEATURES = ["elo_diff"] + [f"{side}_{s}" for side in ("home", "away") for s in FORM_STATS] + [
     f"diff_{s}" for s in FORM_STATS
 ]
+XG_FEATURES = [f"{side}_{s}" for side in ("home", "away") for s in XG_STATS] + [
+    f"diff_{s}" for s in XG_STATS
+]
 REST_FEATURES = ["home_rest", "away_rest", "diff_rest"]
 MARKET_FEATURES = ["mkt_H", "mkt_D", "mkt_A"]
+
+# The features the final model uses (best in the walk-forward test, see README)
+MODEL_FEATURES = ["elo_diff"] + XG_FEATURES + MARKET_FEATURES
 
 
 def build_features(raw_dir: Path = RAW_DIR) -> tuple[pd.DataFrame, EloTracker]:
     m = load_matches(raw_dir)
     m, elo = add_elo(m)
     m = add_form(m)
+    m = add_form(m, XG_STATS, XG_WINDOW)
     m = add_diffs(m)
     m = add_rest(m)
     m = pd.concat([m, odds_to_probs(m)], axis=1)

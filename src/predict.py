@@ -12,7 +12,7 @@ from pathlib import Path
 import pandas as pd
 
 from features import (
-    ELO_HOME_ADV, FORM_STATS, MARKET_FEATURES, RAW_DIR, STATS_FEATURES,
+    ELO_HOME_ADV, FORM_STATS, MODEL_FEATURES, RAW_DIR, XG_STATS, XG_WINDOW,
     add_diffs, build_features, latest_form, odds_to_probs,
 )
 from train import FIRST_TRAIN_SEASON, make_model
@@ -20,7 +20,7 @@ from train import FIRST_TRAIN_SEASON, make_model
 warnings.filterwarnings("ignore", category=pd.errors.PerformanceWarning)
 
 OUT_DIR = Path(__file__).resolve().parent.parent / "predictions"
-FEATURES = STATS_FEATURES + MARKET_FEATURES
+FEATURES = MODEL_FEATURES
 
 
 def load_fixtures() -> pd.DataFrame:
@@ -32,12 +32,15 @@ def load_fixtures() -> pd.DataFrame:
 
 def fixture_features(fx: pd.DataFrame, history: pd.DataFrame, elo) -> pd.DataFrame:
     form = latest_form(history)
+    xg_form = latest_form(history, XG_STATS, XG_WINDOW)
     fx["home_elo"] = fx["HomeTeam"].map(elo.ratings)
     fx["away_elo"] = fx["AwayTeam"].map(elo.ratings)
     fx["elo_diff"] = fx["home_elo"] + ELO_HOME_ADV - fx["away_elo"]
     for side, col in (("home", "HomeTeam"), ("away", "AwayTeam")):
         for s in FORM_STATS:
             fx[f"{side}_{s}"] = fx[col].map(form[s])
+        for s in XG_STATS:
+            fx[f"{side}_{s}"] = fx[col].map(xg_form[s])
     fx = add_diffs(fx)
     return pd.concat([fx, odds_to_probs(fx)], axis=1)
 
