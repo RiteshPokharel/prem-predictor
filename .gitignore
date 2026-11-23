@@ -5,3 +5,5 @@ __pycache__/
 data/raw/*
 !data/raw/.gitkeep
 models/*.pkl
+data/processed/*
+!data/processed/.gitkeep
