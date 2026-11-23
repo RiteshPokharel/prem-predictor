@@ -48,8 +48,9 @@ def load_espn(raw_dir: Path = RAW_DIR) -> pd.DataFrame | None:
     if not path.exists():
         return None
     e = pd.read_csv(path, dtype={"Season": str})
-    e["Kickoff"] = pd.to_datetime(e["Date"])
-    e["Date"] = e["Kickoff"].dt.normalize()
+    local = pd.to_datetime(e["Date"])
+    e["Kickoff"] = local.dt.tz_localize("Europe/London")  # UK time: GMT in winter, BST in summer
+    e["Date"] = local.dt.normalize()
     return e
 
 

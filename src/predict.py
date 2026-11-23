@@ -94,7 +94,7 @@ def main() -> None:
             probs.loc[rows] = p[["H", "D", "A"]]
 
     out = pd.DataFrame({
-        "Kick-off": fx["Kickoff"].dt.strftime("%a %d %b %H:%M"),
+        "Kick-off": fx["Kickoff"].dt.strftime("%a %d %b %H:%M %Z"),
         "Home": fx["HomeTeam"],
         "Away": fx["AwayTeam"],
         "Home win": (probs["H"] * 100).round().astype(int).astype(str) + "%",
