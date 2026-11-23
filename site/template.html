@@ -203,7 +203,7 @@
   svg .axis { font: 800 24px var(--cond); text-transform: uppercase; letter-spacing: 0.04em; fill: var(--ink); }
   svg .axis-sub { font: 500 14px var(--text); fill: var(--ink-2); }
   svg .lbl { fill: var(--ink-2); font-weight: 600; }
-  svg .key { font-size: 12px; fill: var(--muted); }
+  svg .key { font-size: 12px; fill: var(--ink); }
   svg .tag { font: 600 11px var(--cond); text-transform: uppercase; letter-spacing: 0.08em; fill: var(--red); opacity: 0.85; }
   svg .grid { stroke: var(--rule-soft); }
   svg .base { stroke: var(--muted); stroke-dasharray: 3 4; }
@@ -689,9 +689,9 @@ function lineChart(box, lines, H = 220, { names = false, key = false } = {}) {
   if (key) {
     const ky = 12, kx = m.l;
     svg.append(
-      el("svg:line", { x1: kx, x2: kx + 18, y1: ky - 4, y2: ky - 4, stroke: "var(--muted)", "stroke-width": 2 }),
+      el("svg:line", { x1: kx, x2: kx + 18, y1: ky - 4, y2: ky - 4, stroke: "var(--ink)", "stroke-width": 2 }),
       el("svg:text", { class: "key", x: kx + 24, y: ky, text: "Home" }),
-      el("svg:line", { x1: kx + 70, x2: kx + 88, y1: ky - 4, y2: ky - 4, stroke: "var(--muted)", "stroke-width": 2, "stroke-dasharray": "5 4" }),
+      el("svg:line", { x1: kx + 70, x2: kx + 88, y1: ky - 4, y2: ky - 4, stroke: "var(--ink)", "stroke-width": 2, "stroke-dasharray": "5 4" }),
       el("svg:text", { class: "key", x: kx + 94, y: ky, text: "Away" }));
   }
   for (const l of lines) {
