@@ -44,11 +44,13 @@ def main() -> None:
     except Exception as e:
         print(f"Failed fixtures: {e}")
 
+    from download_espn import main as download_espn
     from download_xg import main as download_xg
-    try:
-        download_xg()
-    except Exception as e:
-        print(f"Failed xG: {e}")
+    for name, step in (("ESPN results/fixtures", download_espn), ("xG", download_xg)):
+        try:
+            step()
+        except Exception as e:
+            print(f"Failed {name}: {e}")
 
 
 if __name__ == "__main__":

@@ -24,7 +24,7 @@ cands = {
   "Neural network": lambda: make_pipeline(SimpleImputer(), StandardScaler(), MLPClassifier(hidden_layer_sizes=(16,), alpha=1.0, max_iter=1000, random_state=0)),
 }
 df, _ = build_features()
-test = df["Season"].isin(train.TEST_SEASONS).to_numpy(); y = df.loc[test, "FTR"]
+test = train.is_test(df).to_numpy(); y = df.loc[test, "FTR"]
 feats = STATS_FEATURES + MARKET_FEATURES
 for name, mk in cands.items():
     train.make_model = mk

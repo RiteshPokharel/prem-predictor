@@ -42,11 +42,19 @@ def make_model():
     )
 
 
+def is_test(df: pd.DataFrame) -> pd.Series:
+    """Test matches: recent seasons, only full football-data rows (they have odds + stats)."""
+    return df["Season"].isin(TEST_SEASONS) & (df["source"] == "football-data")
+
+
 def walk_forward(df: pd.DataFrame, features: list[str]) -> np.ndarray:
     """Retrain every week, predict that week. Returns probabilities for A, D, H."""
     probs = np.full((len(df), 3), np.nan)
     train_pool = df["Season"] >= FIRST_TRAIN_SEASON
-    test = df["Season"].isin(TEST_SEASONS)
+    market = [f for f in features if f in MARKET_FEATURES]
+    if market:  # newest ESPN results have no odds yet -> don't train on made-up odds
+        train_pool &= df[market].notna().all(axis=1)
+    test = is_test(df)
     weeks = df["Date"].dt.to_period("W")
 
     for week in weeks[test].unique():
@@ -68,7 +76,7 @@ def score(y: pd.Series, probs: np.ndarray) -> dict:
 
 def main() -> None:
     df, _ = build_features()
-    test = df["Season"].isin(TEST_SEASONS).to_numpy()
+    test = is_test(df).to_numpy()
     y = df.loc[test, "FTR"]
     print(f"Testing on {test.sum()} matches from seasons {', '.join(TEST_SEASONS)}")
     print("(model retrained every week using only past matches)\n")

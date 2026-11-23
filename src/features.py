@@ -3,6 +3,7 @@
 Every feature only uses information known BEFORE kickoff (no peeking at the future):
   - Elo ratings: a running strength score for each team, updated after every match
   - Form over the last 5 matches: points, goals scored/conceded, shots on target
+  - xG (expected goals) for/against over the last 20 matches
   - Bookmaker odds converted to probabilities (the "market" view)
 """
 
@@ -26,7 +27,7 @@ XG_WINDOW = 20              # tested 5/10/20 — xG works best averaged over a l
 
 
 def load_matches(raw_dir: Path = RAW_DIR) -> pd.DataFrame:
-    """Load every season CSV into one table, sorted by date."""
+    """Load every season CSV into one table, plus the newest results from ESPN, sorted by date."""
     frames = []
     for path in sorted(raw_dir.glob("E0_*.csv")):
         df = pd.read_csv(path, encoding="utf-8-sig", encoding_errors="replace")
@@ -35,8 +36,34 @@ def load_matches(raw_dir: Path = RAW_DIR) -> pd.DataFrame:
         frames.append(df)
     m = pd.concat(frames, ignore_index=True)
     m["Date"] = pd.to_datetime(m["Date"], dayfirst=True, format="mixed")
+    m["source"] = "football-data"
+    m = pd.concat([m, fresh_espn_results(m, raw_dir)], ignore_index=True)
     m = m.sort_values(["Date", "HomeTeam"]).reset_index(drop=True)
     return add_xg(m, raw_dir)
+
+
+def load_espn(raw_dir: Path = RAW_DIR) -> pd.DataFrame | None:
+    """This season's results + upcoming fixtures from src/download_espn.py."""
+    path = raw_dir / "espn_current.csv"
+    if not path.exists():
+        return None
+    e = pd.read_csv(path, dtype={"Season": str})
+    e["Kickoff"] = pd.to_datetime(e["Date"])
+    e["Date"] = e["Kickoff"].dt.normalize()
+    return e
+
+
+def fresh_espn_results(m: pd.DataFrame, raw_dir: Path = RAW_DIR) -> pd.DataFrame:
+    """Finished matches ESPN has that football-data.co.uk hasn't added yet."""
+    e = load_espn(raw_dir)
+    if e is None:
+        return pd.DataFrame()
+    e = e[e["completed"]]
+    have = set(zip(m["Season"], m["HomeTeam"], m["AwayTeam"]))
+    new = e[[k not in have for k in zip(e["Season"], e["HomeTeam"], e["AwayTeam"])]].copy()
+    new["FTR"] = np.select([new["FTHG"] > new["FTAG"], new["FTHG"] == new["FTAG"]], ["H", "D"], "A")
+    new["source"] = "espn"
+    return new[["Season", "Date", "HomeTeam", "AwayTeam", "FTHG", "FTAG", "FTR", "source"]]
 
 
 def add_xg(m: pd.DataFrame, raw_dir: Path = RAW_DIR) -> pd.DataFrame:
@@ -154,88 +181,6 @@ def latest_form(m: pd.DataFrame, stats=FORM_STATS, window=FORM_WINDOW) -> pd.Dat
     return log.groupby("team")[stats].apply(lambda g: g.tail(window).mean())
 
 
-REST_CAP = 14  # anything over 2 weeks counts as "fully rested" (international breaks, summer)
-
-
-def add_rest(m: pd.DataFrame) -> pd.DataFrame:
-    """Days since each team's previous league match (only Premier League games are in our data)."""
-    log = team_match_log(m)
-    log["rest"] = log.groupby("team")["Date"].diff().dt.days.clip(upper=REST_CAP)
-    log = log.set_index(["match_id", "team"])["rest"]
-    m = m.copy()
-    for side, team_col in (("home", "HomeTeam"), ("away", "AwayTeam")):
-        keys = pd.MultiIndex.from_arrays([m.index, m[team_col]])
-        m[f"{side}_rest"] = log.reindex(keys).fillna(REST_CAP).to_numpy()
-    m["diff_rest"] = m["home_rest"] - m["away_rest"]
-    return m
-
-
-EURO = ("Champions League", "Europa League", "Conference League", "Super Cup")
-
-
-def load_all_comps(raw_dir: Path = RAW_DIR) -> pd.DataFrame | None:
-    """Every competitive match (any competition) per team, from src/download_all_comps.py."""
-    path = raw_dir / "all_comps.csv"
-    if not path.exists():
-        return None
-    a = pd.read_csv(path, dtype={"season": str, "team_id": str, "event_id": str})
-    a = a[a["competitive"]].copy()
-    a["date"] = pd.to_datetime(a["date"])
-    a["points"] = np.select([a["gf"] > a["ga"], a["gf"] == a["ga"]], [3, 1], 0)
-    a["gd"] = a["gf"] - a["ga"]
-    a["euro"] = a["competition"].str.contains("|".join(EURO))
-    return a.sort_values(["team", "date"])
-
-
-def schedule_features(teams: pd.Series, dates: pd.Series, comps: pd.DataFrame) -> pd.DataFrame:
-    """For each (team, date): how busy the team has been and its form in ALL competitions,
-    using only games played on EARLIER days."""
-    out = pd.DataFrame(index=teams.index, columns=SCHEDULE_STATS, dtype=float)
-    for team, idx in teams.groupby(teams).groups.items():
-        g = comps[comps["team"] == team]
-        if g.empty:
-            continue
-        gdates = g["date"].to_numpy()
-        q = dates.loc[idx].dt.normalize().to_numpy()
-        n_before = np.searchsorted(gdates, q, side="left")          # games strictly before
-        n_14 = n_before - np.searchsorted(gdates, q - np.timedelta64(14, "D"), side="left")
-        edates = g.loc[g["euro"], "date"].to_numpy()
-        e_before = np.searchsorted(edates, q, side="left")
-        e_4 = e_before - np.searchsorted(edates, q - np.timedelta64(4, "D"), side="left")
-        last = np.where(n_before > 0, gdates[np.maximum(n_before - 1, 0)], np.datetime64("NaT"))
-        rest = ((q - last) / np.timedelta64(1, "D")).astype(float)
-
-        cum_pts = np.concatenate([[0], np.cumsum(g["points"].to_numpy())])
-        cum_gd = np.concatenate([[0], np.cumsum(g["gd"].to_numpy())])
-        lo = np.maximum(n_before - FORM_WINDOW, 0)
-        k = np.maximum(n_before - lo, 1)
-        out.loc[idx, "rest_all"] = np.clip(np.nan_to_num(rest, nan=REST_CAP), None, REST_CAP)
-        out.loc[idx, "games_14d"] = n_14
-        out.loc[idx, "euro_4d"] = (e_4 > 0).astype(float)
-        out.loc[idx, "allcomp_ppg"] = np.where(n_before > 0, (cum_pts[n_before] - cum_pts[lo]) / k, np.nan)
-        out.loc[idx, "allcomp_gd"] = np.where(n_before > 0, (cum_gd[n_before] - cum_gd[lo]) / k, np.nan)
-    return out
-
-
-def add_schedule(df: pd.DataFrame, comps: pd.DataFrame | None) -> pd.DataFrame:
-    df = df.copy()
-    if comps is None:
-        for c in SCHEDULE_FEATURES:
-            df[c] = np.nan
-        return df
-    for side, col in (("home", "HomeTeam"), ("away", "AwayTeam")):
-        f = schedule_features(df[col], df["Date"], comps)
-        for s in SCHEDULE_STATS:
-            df[f"{side}_{s}"] = f[s].to_numpy()
-    for s in SCHEDULE_STATS:
-        df[f"diff_{s}"] = df[f"home_{s}"] - df[f"away_{s}"]
-    return df
-
-
-def latest_match_date(m: pd.DataFrame) -> pd.Series:
-    return team_match_log(m).groupby("team")["Date"].max()
-
-
 def add_diffs(df: pd.DataFrame) -> pd.DataFrame:
     for s in FORM_STATS + XG_STATS:
         df[f"diff_{s}"] = df[f"home_{s}"] - df[f"away_{s}"]
@@ -248,15 +193,12 @@ STATS_FEATURES = ["elo_diff"] + [f"{side}_{s}" for side in ("home", "away") for 
 XG_FEATURES = [f"{side}_{s}" for side in ("home", "away") for s in XG_STATS] + [
     f"diff_{s}" for s in XG_STATS
 ]
-REST_FEATURES = ["home_rest", "away_rest", "diff_rest"]
-SCHEDULE_STATS = ["rest_all", "games_14d", "euro_4d", "allcomp_ppg", "allcomp_gd"]
-SCHEDULE_FEATURES = [f"{p}_{s}" for p in ("home", "away", "diff") for s in SCHEDULE_STATS]
-FATIGUE_FEATURES = [f"{p}_{s}" for p in ("home", "away", "diff") for s in ("rest_all", "games_14d", "euro_4d")]
-ALLCOMP_FORM_FEATURES = [f"{p}_{s}" for p in ("home", "away", "diff") for s in ("allcomp_ppg", "allcomp_gd")]
 MARKET_FEATURES = ["mkt_H", "mkt_D", "mkt_A"]
 
 # The features the final model uses (best in the walk-forward test, see README)
 MODEL_FEATURES = ["elo_diff"] + XG_FEATURES + MARKET_FEATURES
+# Backup model for fixtures that don't have bookmaker odds yet
+NO_ODDS_FEATURES = ["elo_diff"] + XG_FEATURES
 
 
 def build_features(raw_dir: Path = RAW_DIR) -> tuple[pd.DataFrame, EloTracker]:
@@ -265,8 +207,6 @@ def build_features(raw_dir: Path = RAW_DIR) -> tuple[pd.DataFrame, EloTracker]:
     m = add_form(m)
     m = add_form(m, XG_STATS, XG_WINDOW)
     m = add_diffs(m)
-    m = add_rest(m)
-    m = add_schedule(m, load_all_comps(raw_dir))
     m = pd.concat([m, odds_to_probs(m)], axis=1)
     return m, elo
 
