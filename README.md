@@ -18,7 +18,7 @@ pip install -r requirements.txt
 
 ## How to use
 ```bash
-python src/download_data.py   # get the latest results + upcoming fixtures
+python src/download_data.py   # get the latest results, xG + upcoming fixtures
 python src/train.py           # test the model week by week on past seasons
 python src/predict.py         # predict the upcoming matches -> predictions/
 ```
@@ -27,9 +27,16 @@ python src/predict.py         # predict the upcoming matches -> predictions/
 For every match the model only uses information known **before kickoff**:
 - **Elo rating**: a running strength score per team, updated after every result
 - **Form**: average points, goals scored/conceded and shots on target over the last 5 matches
+- **xG (expected goals)**: average xG for and against over the last 20 matches — shows whether a team
+  creates good chances or has just been lucky. Opta xG from Fantasy Premier League data (available from Dec 2022)
 - **Bookmaker odds**: turned into probabilities
 
-The model (logistic regression) is **retrained every week** on all matches played so far, then predicts the next ones.
+The final model (logistic regression on **Elo + xG + odds**) is **retrained every week** on all matches played so far, then predicts the next ones.
+
+### Data sources
+- Results, stats and odds: [football-data.co.uk](https://www.football-data.co.uk/englandm.php)
+- xG, past seasons: [vaastav/Fantasy-Premier-League](https://github.com/vaastav/Fantasy-Premier-League)
+- xG, current season: the official [Fantasy Premier League](https://fantasy.premierleague.com) site
 
 ## Results so far
 Walk-forward test on 1,240 matches (2023/24 to Nov 2026), retraining every week:
@@ -40,7 +47,13 @@ Walk-forward test on 1,240 matches (2023/24 to Nov 2026), retraining every week:
 | Elo only | 52.2% | 0.9854 |
 | Elo + form | 52.4% | 0.9811 |
 | Elo + form + odds | 52.5% | 0.9715 |
+| Elo + form + xG + odds | 53.8% | 0.9717 |
+| **Elo + xG + odds (final model)** | **53.5%** | **0.9711** |
 | Bookmakers (benchmark) | 53.6% | 0.9688 |
+
+Adding xG gets about 1 percentage point more results right — level with the bookmakers on accuracy —
+but the probabilities barely improve, and the bookmakers still have the best log loss.
+xG averaged over 20 matches worked better than 5 or 10.
 
 ### Which ML model?
 Same walk-forward test, same features (`python src/compare_models.py`):
@@ -69,3 +82,4 @@ better features (e.g. xG) are likely worth more than a fancier model.
 - Added predictions for upcoming fixtures (first predictions: matchweek of 21 Nov 2026)
 - Compared 5 ML models — logistic regression was best, kept it
 - Tried rest days as a feature — no improvement, left out of the model
+- Added real xG (Opta, via FPL data) — accuracy 52.5% → 53.5%, now the final model
