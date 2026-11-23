@@ -160,6 +160,11 @@
   .bench .fill.dim { background: var(--muted); }
   .bench .fig { font-size: 17px; font-weight: 700; text-align: right; }
   .stub-section p { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+  .stub-section p.draw-why { color: var(--ink-2); font-size: 14px; line-height: 1.5; margin-top: 0; }
+  .stub-section .more { display: inline-flex; align-items: center; gap: 4px; margin-top: 10px; font: 700 14px/1 var(--cond); text-transform: uppercase; letter-spacing: 0.04em; color: var(--red-ink); text-decoration: none; }
+  .stub-section .more svg { width: 12px; height: 12px; transition: transform 120ms ease-out; }
+  .stub-section .more:hover svg { transform: translateX(2px); }
+  #why-draw { scroll-margin-top: 24px; }
 
   /* teams */
   .team-pick { display: flex; align-items: stretch; gap: 8px; padding: 14px 20px; border-bottom: 2px solid var(--red); }
@@ -408,7 +413,7 @@
       </table>
       <p>Log loss scores the percentages themselves, lower is better. The model matches the bookmakers on picks and sits just behind them on the percentages.</p>
 
-      <h2>Why it never predicts a draw</h2>
+      <h2 id="why-draw">Why it never predicts a draw</h2>
       <p>Roughly one in four Premier League matches ends level: 24.7% of the 1,240 matches in the test. Yet in none of them was the draw the single most likely outcome. Not for this model, and not for the bookmakers, whose draw probability never rose above 32%.</p>
       <p>This isn't a blind spot. A draw is most likely when two teams are evenly matched, but evenly matched also means each win stays close to a third, so the draw is almost never the favourite. A model that maximises accuracy always picks the most likely result, so it never picks a draw, and it accepts that about a quarter of matches will be wrong whatever it does.</p>
       <p>That's why accuracy alone is a weak test of a forecaster. The draw chance still appears on every match, and the log loss scores whether those percentages are right, not just whether the top pick came in.</p>
@@ -586,6 +591,8 @@ function renderStub() {
   const latestWeek = weekOf(lastDates[lastDates.length - 1]);
   const last = rec.filter(r => weekOf(r.date) === latestWeek);
   const hits = last.filter(r => r.correct).length;
+  const drawLink = el("a", { class: "more", href: "#/how" }, "Read more in How it works",
+    el("svg:svg", { viewBox: "0 0 16 16", "aria-hidden": "true" }, el("svg:path", { d: "m6 3 5 5-5 5", fill: "none", stroke: "currentColor", "stroke-width": 2 })));
   stub.append(
     el("div", { class: "stub-head" },
       el("h2", { text: "Last round" }),
@@ -598,7 +605,16 @@ function renderStub() {
       el("div", { class: "bench" },
         ...benchRow("Our predictions", 0.535, false),
         ...benchRow("Bookmakers' predictions", 0.536, true)),
-      el("p", { text: "Tested on 1,240 past matches. Bookmakers: how often their favourite won the same matches." })));
+      el("p", { text: "Tested on 1,240 past matches. Bookmakers: how often their favourite won the same matches." })),
+    el("div", { class: "stub-section" },
+      el("h3", { text: "Why a draw is never predicted" }),
+      el("p", { class: "draw-why", text: "About 1 in 4 matches ends in a draw, but a draw is almost never the single most likely result. Even when two teams are evenly matched, each win still has around a third of the chance, so the pick is always a win. The draw chance still shows on every match." }),
+      drawLink));
+  drawLink.addEventListener("click", e => {
+    e.preventDefault();
+    show("how");
+    document.getElementById("why-draw").scrollIntoView({ block: "start", behavior: reduceMotion ? "auto" : "smooth" });
+  });
 }
 
 function benchRow(label, v, dim) {
