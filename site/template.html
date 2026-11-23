@@ -576,6 +576,7 @@ function flipIn(scope) {
       n.textContent = final;
       if (ink) {
         td.classList.add("pick");
+        ink.style.clipPath = "inset(0 0 0 0)";  // final state, even if the animation below never runs
         ink.animate([{ clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0 0 0)" }],
           { duration: 320, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "forwards" });
       }
