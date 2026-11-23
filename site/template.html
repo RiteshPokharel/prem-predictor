@@ -510,7 +510,7 @@ function renderMatchDetail(td, m) {
   const chart = el("div");
   const f = (label, hv, av) => [el("span", { text: label }), el("span", { class: "fig", text: hv }), el("span", { class: "fig", text: av })];
   td.replaceChildren(el("div", { class: "detail-grid" },
-    el("div", {}, el("h3", { text: "Strength rating this season", style: "margin-bottom:6px" }), chart),
+    chart,
     el("div", { class: "facts" },
       el("span"), el("span", { class: "hd", text: m.home }), el("span", { class: "hd", text: m.away }),
       ...f("Table position", h.Pos ?? "–", a.Pos ?? "–"),
@@ -518,9 +518,11 @@ function renderMatchDetail(td, m) {
       ...f("Rating", h.Elo ?? "–", a.Elo ?? "–"),
       ...f("xG created per game", h.xgf?.toFixed(2) ?? "–", a.xgf?.toFixed(2) ?? "–"),
       ...f("xG conceded per game", h.xga?.toFixed(2) ?? "–", a.xga?.toFixed(2) ?? "–"))));
+  // the predicted winner's line is red; on a predicted draw neither is
+  const pick = pickOf(m);
   lineChart(chart, [
-    { name: m.home, color: "var(--red)", pts: series(m.home, true) },
-    { name: m.away, color: "var(--ink)", pts: series(m.away, true), dash: "5 4" },
+    { name: m.home, color: pick === "H" ? "var(--red)" : "var(--ink)", pts: series(m.home, true) },
+    { name: m.away, color: pick === "A" ? "var(--red)" : "var(--ink)", pts: series(m.away, true), dash: "5 4" },
   ], 180, { names: true });
 }
 
