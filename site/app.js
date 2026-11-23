@@ -409,7 +409,10 @@ function renderXg() {
   const box = document.getElementById("xg-chart"), W = box.clientWidth;
   if (!W) return;
   const teams = DATA.table.filter(t => t.xgf != null && t.xga != null);
-  const H = W < 560 ? Math.round(W * 1.2) : Math.min(460, Math.max(340, W * 0.7)), m = { t: 12, r: 12, b: 82, l: 92 };
+  // On phones the axis titles sit above and below the plot instead of beside it, so the dots get the full width
+  const narrow = W < 560;
+  const H = narrow ? Math.round(W * 1.25) : Math.min(460, Math.max(340, W * 0.7));
+  const m = narrow ? { t: 52, r: 8, b: 64, l: 34 } : { t: 12, r: 12, b: 82, l: 92 };
   const xs = teams.map(t => t.xgf), ys = teams.map(t => t.xga);
   const xlo = Math.min(...xs) - 0.1, xhi = Math.max(...xs) + 0.1, ylo = Math.min(...ys) - 0.1, yhi = Math.max(...ys) + 0.1;
   const x = v => m.l + (v - xlo) / (xhi - xlo) * (W - m.l - m.r);
@@ -418,7 +421,12 @@ function renderXg() {
   for (const v of niceTicks(xlo, xhi, 6)) svg.append(el("svg:line", { class: "grid", x1: x(v), x2: x(v), y1: m.t, y2: H - m.b }), el("svg:text", { x: x(v), y: H - m.b + 20, "text-anchor": "middle", text: v.toFixed(1) }));
   for (const v of niceTicks(ylo, yhi, 5)) svg.append(el("svg:line", { class: "grid", x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }), el("svg:text", { x: m.l - 10, y: y(v) + 4, "text-anchor": "end", text: v.toFixed(1) }));
   const cx = (m.l + W - m.r) / 2, cy = -(m.t + H - m.b) / 2;
-  svg.append(
+  if (narrow) svg.append(
+    el("svg:text", { class: "axis", x: 0, y: 18, text: "↑ Defence" }),
+    el("svg:text", { class: "axis-sub", x: 0, y: 36, text: "Fewer chances conceded (xG per game)" }),
+    el("svg:text", { class: "axis", x: W - m.r, y: H - 26, "text-anchor": "end", text: "Attack →" }),
+    el("svg:text", { class: "axis-sub", x: W - m.r, y: H - 6, "text-anchor": "end", text: "More chances created (xG per game)" }));
+  else svg.append(
     el("svg:text", { class: "axis", x: cx, y: H - 30, "text-anchor": "middle", text: "Attack →" }),
     el("svg:text", { class: "axis-sub", x: cx, y: H - 8, "text-anchor": "middle", text: "More chances created (xG per game)" }),
     el("svg:text", { class: "axis", x: cy, y: 22, transform: "rotate(-90)", "text-anchor": "middle", text: "Defence →" }),
@@ -441,7 +449,7 @@ function renderXg() {
     const on = p.t.Team === selected;
     const label = el("svg:text", { class: "lbl", text: p.t.Team, style: on ? "fill:var(--red);font-weight:700" : null });
     svg.append(label);
-    const w = label.getComputedTextLength(), h = 15;
+    const w = label.getComputedTextLength(), h = narrow ? 13 : 15;
     const spots = [];
     for (const r of [8, 12, 18]) {
       spots.push([p.x + r, p.y - h / 2, "start", r], [p.x - r - w, p.y - h / 2, "end", r],

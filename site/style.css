@@ -108,6 +108,7 @@ h3 { font: 700 17px/1.2 var(--text); margin: 0; }
 .coupon .match .v { color: var(--muted); font-weight: 400; padding: 0 6px; }
 .coupon .cell { width: 84px; text-align: center; border-left: 1px solid var(--rule); padding: 0; position: relative; }
 .coupon .cell .n { position: relative; z-index: 1; font: 600 22px/1 var(--cond); font-variant-numeric: tabular-nums; color: var(--ink-2); transition: color 90ms ease-out; }
+.xg-wrap { padding: 12px 20px 20px; }
 .coupon .cell .ink { position: absolute; inset: 7px 9px; background: var(--mark); clip-path: inset(0 0 0 0); }
 .coupon .cell.pick .n, .coupon .cell.pick .pc { color: var(--mark-ink); }
 .coupon .cell.pick .n { font-weight: 700; }
@@ -272,6 +273,11 @@ footer { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
   .coupon .no { width: 34px; font-size: 17px; }
   .coupon .ko { display: none; }
   .coupon .cell { width: 58px; }
+  .coupon .cell .ink { inset: 8px 4px; }
+  .xg-wrap { padding: 12px 12px 14px; }
+  svg .axis { font-size: 18px; }
+  svg .axis-sub { font-size: 12px; }
+  #xg-chart svg text.lbl { font-size: 12px; }
   .coupon .cell .n { font-size: 19px; }
   .coupon td { padding: 0 6px; }
   .coupon .match .v { padding: 0 4px; }
