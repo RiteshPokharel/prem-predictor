@@ -203,6 +203,7 @@
   svg .axis { font: 800 24px var(--cond); text-transform: uppercase; letter-spacing: 0.04em; fill: var(--ink); }
   svg .axis-sub { font: 500 14px var(--text); fill: var(--ink-2); }
   svg .lbl { fill: var(--ink-2); font-weight: 600; }
+  svg .tag { font: 600 11px var(--cond); text-transform: uppercase; letter-spacing: 0.08em; fill: var(--red); opacity: 0.85; }
   svg .grid { stroke: var(--rule-soft); }
   svg .base { stroke: var(--muted); stroke-dasharray: 3 4; }
   #tip { position: fixed; z-index: 10; pointer-events: none; opacity: 0; background: var(--ink); color: var(--sheet); padding: 6px 10px; font-size: 13px; white-space: nowrap; transition: opacity .1s; }
@@ -521,8 +522,8 @@ function renderMatchDetail(td, m) {
   // the predicted winner's line is red; on a predicted draw neither is
   const pick = pickOf(m);
   lineChart(chart, [
-    { name: m.home, color: pick === "H" ? "var(--red)" : "var(--ink)", pts: series(m.home, true) },
-    { name: m.away, color: pick === "A" ? "var(--red)" : "var(--ink)", pts: series(m.away, true), dash: "5 4" },
+    { name: m.home, color: pick === "H" ? "var(--red)" : "var(--ink)", pts: series(m.home, true), tag: pick === "H" ? "Predicted to win" : null },
+    { name: m.away, color: pick === "A" ? "var(--red)" : "var(--ink)", pts: series(m.away, true), dash: "5 4", tag: pick === "A" ? "Predicted to win" : null },
   ], 180, { names: true });
 }
 
@@ -690,10 +691,14 @@ function lineChart(box, lines, H = 220, { names = false } = {}) {
     }
   }
   const ends = lines.map(l => ({ l, p: l.pts[l.pts.length - 1] })).map(o => ({ ...o, yy: y(o.p.elo) })).sort((a, b) => a.yy - b.yy);
-  for (let i = 1; i < ends.length; i++) if (ends[i].yy - ends[i - 1].yy < 14) ends[i].yy = ends[i - 1].yy + 14;
+  for (let i = 1; i < ends.length; i++) {
+    const gap = ends[i - 1].l.tag ? 30 : 14;  // a tagged label takes two lines
+    if (ends[i].yy - ends[i - 1].yy < gap) ends[i].yy = ends[i - 1].yy + gap;
+  }
   for (const { l, p, yy } of ends) {
     svg.append(el("svg:circle", { cx: x(p.t), cy: y(p.elo), r: 3.5, fill: l.color }),
       el("svg:text", { class: "lbl", x: W - m.r + 8, y: yy + 4, text: endText(l, p), style: names ? `fill:${l.color}` : null }));
+    if (l.tag) svg.append(el("svg:text", { class: "tag", x: W - m.r + 8, y: yy + 19, text: l.tag }));
   }
   const cross = el("svg:line", { stroke: "var(--muted)", y1: m.t, y2: H - m.b, visibility: "hidden" });
   const hit = el("svg:rect", { x: m.l, y: 0, width: Math.max(0, W - m.l - m.r), height: H, fill: "transparent" });
