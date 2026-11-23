@@ -671,9 +671,9 @@ function lineChart(box, lines, H = 220, { names = false, key = false } = {}) {
   if (!lines.length) return;
   const endText = (l, p) => names ? `${l.name} ${Math.round(p.elo)}` : String(Math.round(p.elo));
   const longest = Math.max(...lines.map(l => endText(l, l.pts[l.pts.length - 1]).length));
-  const keyH = key ? 22 : 0;  // room under the month labels for the home/away key
+  const keyH = key ? 24 : 0;  // room above the plot for the home/away key
   H += keyH;
-  const m = { t: 10, r: 16 + longest * 7.5, b: 26 + keyH, l: 46 };
+  const m = { t: 10 + keyH, r: 16 + longest * 7.5, b: 26, l: 46 };
   const all = lines.flatMap(l => l.pts);
   const t0 = Math.min(...all.map(p => p.t)), t1 = Math.max(...all.map(p => p.t));
   const lo = Math.min(1500, ...all.map(p => p.elo)) - 12, hi = Math.max(1500, ...all.map(p => p.elo)) + 12;
@@ -683,11 +683,11 @@ function lineChart(box, lines, H = 220, { names = false, key = false } = {}) {
   for (const v of niceTicks(lo, hi, 4)) svg.append(el("svg:line", { class: "grid", x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }), el("svg:text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end", text: v }));
   const months = (t1 - t0) / 864e5 > 200 ? 2 : 1, s = new Date(t0);
   for (let d = new Date(Date.UTC(s.getUTCFullYear(), s.getUTCMonth() + 1, 1)); d.getTime() <= t1; d.setUTCMonth(d.getUTCMonth() + months)) {
-    svg.append(el("svg:text", { x: x(d.getTime()), y: H - 4 - keyH, "text-anchor": "middle", text: d.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" }) }));
+    svg.append(el("svg:text", { x: x(d.getTime()), y: H - 4, "text-anchor": "middle", text: d.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" }) }));
   }
   svg.append(el("svg:line", { class: "base", x1: m.l, x2: W - m.r, y1: y(1500), y2: y(1500) }));
   if (key) {
-    const ky = H - 6, kx = m.l;
+    const ky = 12, kx = m.l;
     svg.append(
       el("svg:line", { x1: kx, x2: kx + 18, y1: ky - 4, y2: ky - 4, stroke: "var(--muted)", "stroke-width": 2 }),
       el("svg:text", { class: "key", x: kx + 24, y: ky, text: "Home" }),
