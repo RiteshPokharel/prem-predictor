@@ -18,3 +18,4 @@ pip install -r requirements.txt
 
 ## Progress log
 - Set up the project and the GitHub repo
+- Added `src/download_data.py`: downloads 2016/17–2026/27 match results from [football-data.co.uk](https://www.football-data.co.uk/englandm.php) (run `python src/download_data.py`)
