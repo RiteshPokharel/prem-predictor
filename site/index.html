@@ -88,8 +88,6 @@
   h2 { font: 700 22px/1.1 var(--cond); text-transform: uppercase; color: var(--red); margin: 0; }
   h3 { font: 700 17px/1.2 var(--text); margin: 0; }
   .lede { color: var(--ink-2); margin: 0; }
-  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 6px 0 0; vertical-align: -1px; }
-  .sw ~ .sw { margin-left: 10px; }
   .legend { display: flex; align-items: center; gap: 10px; margin: 0; font: 600 20px/1.2 var(--cond); color: var(--ink); letter-spacing: 0.01em; }
   .ring-key { width: 26px; height: 18px; border: 2px solid var(--red); border-radius: 50%; flex: none; }
 
@@ -152,7 +150,7 @@
   .stub-list li .fig { font-size: 18px; font-weight: 700; }
   .stub-section { padding: 14px 18px 16px; }
   .stub-section h3 { font: 700 14px var(--cond); text-transform: uppercase; color: var(--red); margin-bottom: 10px; letter-spacing: 0.02em; }
-  .bench { display: grid; grid-template-columns: 96px 1fr 46px; gap: 8px 10px; align-items: center; font-size: 13px; }
+  .bench { display: grid; grid-template-columns: max-content 1fr 46px; gap: 8px 10px; align-items: center; font-size: 13px; }
   .bench .track { height: 10px; background: var(--rule-soft); position: relative; }
   .bench .fill { position: absolute; inset: 0 auto 0 0; background: var(--red); }
   .bench .fill.dim { background: var(--muted); }
@@ -385,7 +383,7 @@
       <div style="padding:14px 20px 18px">
         <h3 class="chart-title">Picks correct</h3><div id="model-chart-acc"></div>
         <h3 class="chart-title">Log loss, lower is better</h3><div id="model-chart-ll"></div>
-        <p class="chart-note"><span class="sw" style="background:var(--red)"></span>This model <span class="sw" style="background:var(--ink)"></span>Bookmakers<br>Each test retrained the model week by week on earlier matches only.</p>
+        <p class="chart-note">Each test retrained the model week by week on earlier matches only.</p>
       </div>
     </aside>
     </div>
@@ -548,7 +546,7 @@ function renderStub() {
       el("h3", { text: "How often the prediction is right" }),
       el("div", { class: "bench" },
         ...benchRow("Our predictions", 0.535, false),
-        ...benchRow("Bookmakers", 0.536, true)),
+        ...benchRow("Bookmakers' predictions", 0.536, true)),
       el("p", { text: "Tested on 1,240 past matches. Bookmakers: how often their favourite won the same matches." })));
 }
 
