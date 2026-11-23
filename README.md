@@ -42,9 +42,25 @@ Walk-forward test on 1,240 matches (2023/24 to Nov 2026), retraining every week:
 | Elo + form + odds | 52.5% | 0.9715 |
 | Bookmakers (benchmark) | 53.6% | 0.9688 |
 
+### Which ML model?
+Same walk-forward test, same features (`python src/compare_models.py`):
+
+| Model | Accuracy | Log loss |
+|---|---|---|
+| **Logistic regression** | 52.5% | **0.9715** |
+| Neural network | 52.8% | 0.9760 |
+| Random forest | 51.6% | 0.9769 |
+| K-nearest neighbours | 52.5% | 0.9877 |
+| Gradient boosting | 51.0% | 0.9923 |
+
+Logistic regression gives the best probabilities and is the fastest, so it stays.
+Football results are noisy and the dataset is small, so complex models mostly fit noise —
+better features (e.g. xG) are likely worth more than a fancier model.
+
 ## Progress log
 - Set up the project and the GitHub repo
 - Added `src/download_data.py`: downloads 2016/17–2026/27 match results from [football-data.co.uk](https://www.football-data.co.uk/englandm.php) (run `python src/download_data.py`)
 - Built features: Elo ratings, last-5-match form, bookmaker probabilities
 - Added a week-by-week walk-forward test: model beats the home-win baseline by ~9 points, slightly behind the bookmakers
 - Added predictions for upcoming fixtures (first predictions: matchweek of 21 Nov 2026)
+- Compared 5 ML models — logistic regression was best, kept it
