@@ -138,6 +138,26 @@ def latest_form(m: pd.DataFrame) -> pd.DataFrame:
     return log.groupby("team")[FORM_STATS].apply(lambda g: g.tail(FORM_WINDOW).mean())
 
 
+REST_CAP = 14  # anything over 2 weeks counts as "fully rested" (international breaks, summer)
+
+
+def add_rest(m: pd.DataFrame) -> pd.DataFrame:
+    """Days since each team's previous league match (only Premier League games are in our data)."""
+    log = team_match_log(m)
+    log["rest"] = log.groupby("team")["Date"].diff().dt.days.clip(upper=REST_CAP)
+    log = log.set_index(["match_id", "team"])["rest"]
+    m = m.copy()
+    for side, team_col in (("home", "HomeTeam"), ("away", "AwayTeam")):
+        keys = pd.MultiIndex.from_arrays([m.index, m[team_col]])
+        m[f"{side}_rest"] = log.reindex(keys).fillna(REST_CAP).to_numpy()
+    m["diff_rest"] = m["home_rest"] - m["away_rest"]
+    return m
+
+
+def latest_match_date(m: pd.DataFrame) -> pd.Series:
+    return team_match_log(m).groupby("team")["Date"].max()
+
+
 def add_diffs(df: pd.DataFrame) -> pd.DataFrame:
     for s in FORM_STATS:
         df[f"diff_{s}"] = df[f"home_{s}"] - df[f"away_{s}"]
@@ -147,6 +167,7 @@ def add_diffs(df: pd.DataFrame) -> pd.DataFrame:
 STATS_FEATURES = ["elo_diff"] + [f"{side}_{s}" for side in ("home", "away") for s in FORM_STATS] + [
     f"diff_{s}" for s in FORM_STATS
 ]
+REST_FEATURES = ["home_rest", "away_rest", "diff_rest"]
 MARKET_FEATURES = ["mkt_H", "mkt_D", "mkt_A"]
 
 
@@ -155,6 +176,7 @@ def build_features(raw_dir: Path = RAW_DIR) -> tuple[pd.DataFrame, EloTracker]:
     m, elo = add_elo(m)
     m = add_form(m)
     m = add_diffs(m)
+    m = add_rest(m)
     m = pd.concat([m, odds_to_probs(m)], axis=1)
     return m, elo
 

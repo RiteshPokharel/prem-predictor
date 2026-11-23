@@ -57,6 +57,10 @@ Logistic regression gives the best probabilities and is the fastest, so it stays
 Football results are noisy and the dataset is small, so complex models mostly fit noise —
 better features (e.g. xG) are likely worth more than a fancier model.
 
+### Experiments that didn't help
+- **Rest days** (days since each team's last league match): log loss 0.9715 → 0.9720, so not used.
+  Our data only has Premier League games, so it misses tiredness from midweek European and cup matches.
+
 ## Progress log
 - Set up the project and the GitHub repo
 - Added `src/download_data.py`: downloads 2016/17–2026/27 match results from [football-data.co.uk](https://www.football-data.co.uk/englandm.php) (run `python src/download_data.py`)
@@ -64,3 +68,4 @@ better features (e.g. xG) are likely worth more than a fancier model.
 - Added a week-by-week walk-forward test: model beats the home-win baseline by ~9 points, slightly behind the bookmakers
 - Added predictions for upcoming fixtures (first predictions: matchweek of 21 Nov 2026)
 - Compared 5 ML models — logistic regression was best, kept it
+- Tried rest days as a feature — no improvement, left out of the model
