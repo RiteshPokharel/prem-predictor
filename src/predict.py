@@ -111,6 +111,41 @@ def main() -> None:
     path = OUT_DIR / f"predictions_{fx['Kickoff'].min():%Y-%m-%d}.csv"
     out.to_csv(path, index=False)
     print(f"\nSaved -> {path.relative_to(OUT_DIR.parent)}")
+    export_team_data(history, elo)
+
+
+def export_team_data(history: pd.DataFrame, elo) -> None:
+    """League table, ratings and rating history for the dashboard."""
+    season = history["Season"].max()
+    games = history[history["Season"] == season]
+    rows = []
+    for side, other in (("Home", "Away"), ("Away", "Home")):
+        gf, ga = ("FTHG", "FTAG") if side == "Home" else ("FTAG", "FTHG")
+        rows.append(pd.DataFrame({
+            "Team": games[f"{side}Team"], "GF": games[gf], "GA": games[ga],
+            "W": games[gf] > games[ga], "D": games[gf] == games[ga], "L": games[gf] < games[ga],
+        }))
+    table = pd.concat(rows).groupby("Team").sum()
+    table["P"] = table[["W", "D", "L"]].sum(axis=1)
+    table[["GF", "GA"]] = table[["GF", "GA"]].astype(int)
+    table["GD"] = table["GF"] - table["GA"]
+    table["Pts"] = 3 * table["W"] + table["D"]
+    table = table.sort_values(["Pts", "GD", "GF"], ascending=False)
+    xg = latest_form(history, XG_STATS, XG_WINDOW)
+    table["Elo"] = table.index.map(elo.ratings).round().astype(int)
+    table["xG for"] = table.index.map(xg["xgf"]).round(2)
+    table["xG against"] = table.index.map(xg["xga"]).round(2)
+    table = table[["P", "W", "D", "L", "GF", "GA", "GD", "Pts", "Elo", "xG for", "xG against"]]
+    table.insert(0, "Pos", range(1, len(table) + 1))
+    table.to_csv(OUT_DIR / "table.csv", index_label="Team")
+
+    recent = history[history["Season"] >= sorted(history["Season"].unique())[-2]]
+    ratings = pd.concat([
+        recent[["Date", "Season", "HomeTeam", "home_elo_after"]].set_axis(["Date", "Season", "Team", "Elo"], axis=1),
+        recent[["Date", "Season", "AwayTeam", "away_elo_after"]].set_axis(["Date", "Season", "Team", "Elo"], axis=1),
+    ]).sort_values(["Team", "Date"])
+    ratings["Elo"] = ratings["Elo"].round(1)
+    ratings.to_csv(OUT_DIR / "elo_history.csv", index=False)
 
 
 if __name__ == "__main__":

@@ -22,6 +22,7 @@ python src/download_data.py   # get the latest results, xG, fixtures + odds
 python src/train.py           # test the model week by week on past seasons
 python src/predict.py         # predict the next round -> predictions/
 python src/evaluate.py        # check past predictions against the real results
+streamlit run app.py          # dashboard: next round, track record, teams
 ```
 
 This also runs **automatically on GitHub** every Tuesday and Friday morning (GMT), and saves the new
@@ -99,3 +100,4 @@ better features (e.g. xG) are likely worth more than a fancier model.
 - Added every team's matches in all competitions (European + cups) and tested fatigue and all-competition form — no real improvement, removed
 - Newest results now come from ESPN straight after each match; predictions cover the next full gameweek
 - Added a track record (first real round: 4/9 correct) and automatic twice-weekly updates on GitHub
+- Added a dashboard (Streamlit): next-round probabilities, track record, team ratings and xG

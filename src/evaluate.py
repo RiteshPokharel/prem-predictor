@@ -36,7 +36,8 @@ def main() -> None:
     preds = load_predictions()
     results = load_matches()
     results = results[results["Season"] == results["Season"].max()]
-    played = preds.merge(results[["HomeTeam", "AwayTeam", "FTHG", "FTAG", "FTR"]],
+    results = results.rename(columns={"Date": "Played"})
+    played = preds.merge(results[["Played", "HomeTeam", "AwayTeam", "FTHG", "FTAG", "FTR"]],
                          left_on=["Home", "Away"], right_on=["HomeTeam", "AwayTeam"])
     if played.empty:
         print("None of the predicted matches have been played yet.")
@@ -48,6 +49,7 @@ def main() -> None:
     played["Chance given"] = probs[np.arange(len(played)), actual]
 
     table = pd.DataFrame({
+        "Date": played["Played"].dt.strftime("%Y-%m-%d"),
         "Match": played["Home"] + " v " + played["Away"],
         "Score": played["FTHG"].astype(int).astype(str) + "-" + played["FTAG"].astype(int).astype(str),
         "Pick": played["Pick"],

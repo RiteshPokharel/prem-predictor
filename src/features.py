@@ -125,16 +125,20 @@ class EloTracker:
 def add_elo(m: pd.DataFrame) -> tuple[pd.DataFrame, EloTracker]:
     """Add pre-match Elo ratings. Returns the tracker so we can rate future fixtures."""
     elo = EloTracker()
-    home_elo, away_elo = [], []
+    home_elo, away_elo, home_after, away_after = [], [], [], []
     for season, games in m.groupby("Season", sort=True):
         elo.start_season(season, set(games["HomeTeam"]) | set(games["AwayTeam"]))
         for row in games.itertuples():
             home_elo.append(elo.ratings[row.HomeTeam])
             away_elo.append(elo.ratings[row.AwayTeam])
             elo.update(row.HomeTeam, row.AwayTeam, row.FTHG, row.FTAG)
+            home_after.append(elo.ratings[row.HomeTeam])
+            away_after.append(elo.ratings[row.AwayTeam])
     m = m.copy()
     m["home_elo"] = home_elo
     m["away_elo"] = away_elo
+    m["home_elo_after"] = home_after
+    m["away_elo_after"] = away_after
     m["elo_diff"] = m["home_elo"] + ELO_HOME_ADV - m["away_elo"]
     return m, elo
 
