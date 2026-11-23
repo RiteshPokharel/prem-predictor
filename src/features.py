@@ -170,6 +170,68 @@ def add_rest(m: pd.DataFrame) -> pd.DataFrame:
     return m
 
 
+EURO = ("Champions League", "Europa League", "Conference League", "Super Cup")
+
+
+def load_all_comps(raw_dir: Path = RAW_DIR) -> pd.DataFrame | None:
+    """Every competitive match (any competition) per team, from src/download_all_comps.py."""
+    path = raw_dir / "all_comps.csv"
+    if not path.exists():
+        return None
+    a = pd.read_csv(path, dtype={"season": str, "team_id": str, "event_id": str})
+    a = a[a["competitive"]].copy()
+    a["date"] = pd.to_datetime(a["date"])
+    a["points"] = np.select([a["gf"] > a["ga"], a["gf"] == a["ga"]], [3, 1], 0)
+    a["gd"] = a["gf"] - a["ga"]
+    a["euro"] = a["competition"].str.contains("|".join(EURO))
+    return a.sort_values(["team", "date"])
+
+
+def schedule_features(teams: pd.Series, dates: pd.Series, comps: pd.DataFrame) -> pd.DataFrame:
+    """For each (team, date): how busy the team has been and its form in ALL competitions,
+    using only games played on EARLIER days."""
+    out = pd.DataFrame(index=teams.index, columns=SCHEDULE_STATS, dtype=float)
+    for team, idx in teams.groupby(teams).groups.items():
+        g = comps[comps["team"] == team]
+        if g.empty:
+            continue
+        gdates = g["date"].to_numpy()
+        q = dates.loc[idx].dt.normalize().to_numpy()
+        n_before = np.searchsorted(gdates, q, side="left")          # games strictly before
+        n_14 = n_before - np.searchsorted(gdates, q - np.timedelta64(14, "D"), side="left")
+        edates = g.loc[g["euro"], "date"].to_numpy()
+        e_before = np.searchsorted(edates, q, side="left")
+        e_4 = e_before - np.searchsorted(edates, q - np.timedelta64(4, "D"), side="left")
+        last = np.where(n_before > 0, gdates[np.maximum(n_before - 1, 0)], np.datetime64("NaT"))
+        rest = ((q - last) / np.timedelta64(1, "D")).astype(float)
+
+        cum_pts = np.concatenate([[0], np.cumsum(g["points"].to_numpy())])
+        cum_gd = np.concatenate([[0], np.cumsum(g["gd"].to_numpy())])
+        lo = np.maximum(n_before - FORM_WINDOW, 0)
+        k = np.maximum(n_before - lo, 1)
+        out.loc[idx, "rest_all"] = np.clip(np.nan_to_num(rest, nan=REST_CAP), None, REST_CAP)
+        out.loc[idx, "games_14d"] = n_14
+        out.loc[idx, "euro_4d"] = (e_4 > 0).astype(float)
+        out.loc[idx, "allcomp_ppg"] = np.where(n_before > 0, (cum_pts[n_before] - cum_pts[lo]) / k, np.nan)
+        out.loc[idx, "allcomp_gd"] = np.where(n_before > 0, (cum_gd[n_before] - cum_gd[lo]) / k, np.nan)
+    return out
+
+
+def add_schedule(df: pd.DataFrame, comps: pd.DataFrame | None) -> pd.DataFrame:
+    df = df.copy()
+    if comps is None:
+        for c in SCHEDULE_FEATURES:
+            df[c] = np.nan
+        return df
+    for side, col in (("home", "HomeTeam"), ("away", "AwayTeam")):
+        f = schedule_features(df[col], df["Date"], comps)
+        for s in SCHEDULE_STATS:
+            df[f"{side}_{s}"] = f[s].to_numpy()
+    for s in SCHEDULE_STATS:
+        df[f"diff_{s}"] = df[f"home_{s}"] - df[f"away_{s}"]
+    return df
+
+
 def latest_match_date(m: pd.DataFrame) -> pd.Series:
     return team_match_log(m).groupby("team")["Date"].max()
 
@@ -187,6 +249,10 @@ XG_FEATURES = [f"{side}_{s}" for side in ("home", "away") for s in XG_STATS] + [
     f"diff_{s}" for s in XG_STATS
 ]
 REST_FEATURES = ["home_rest", "away_rest", "diff_rest"]
+SCHEDULE_STATS = ["rest_all", "games_14d", "euro_4d", "allcomp_ppg", "allcomp_gd"]
+SCHEDULE_FEATURES = [f"{p}_{s}" for p in ("home", "away", "diff") for s in SCHEDULE_STATS]
+FATIGUE_FEATURES = [f"{p}_{s}" for p in ("home", "away", "diff") for s in ("rest_all", "games_14d", "euro_4d")]
+ALLCOMP_FORM_FEATURES = [f"{p}_{s}" for p in ("home", "away", "diff") for s in ("allcomp_ppg", "allcomp_gd")]
 MARKET_FEATURES = ["mkt_H", "mkt_D", "mkt_A"]
 
 # The features the final model uses (best in the walk-forward test, see README)
@@ -200,6 +266,7 @@ def build_features(raw_dir: Path = RAW_DIR) -> tuple[pd.DataFrame, EloTracker]:
     m = add_form(m, XG_STATS, XG_WINDOW)
     m = add_diffs(m)
     m = add_rest(m)
+    m = add_schedule(m, load_all_comps(raw_dir))
     m = pd.concat([m, odds_to_probs(m)], axis=1)
     return m, elo
 

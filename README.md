@@ -37,6 +37,7 @@ The final model (logistic regression on **Elo + xG + odds**) is **retrained ever
 - Results, stats and odds: [football-data.co.uk](https://www.football-data.co.uk/englandm.php)
 - xG, past seasons: [vaastav/Fantasy-Premier-League](https://github.com/vaastav/Fantasy-Premier-League)
 - xG, current season: the official [Fantasy Premier League](https://fantasy.premierleague.com) site
+- Matches in all competitions (experiments): ESPN
 
 ## Results so far
 Walk-forward test on 1,240 matches (2023/24 to Nov 2026), retraining every week:
@@ -73,6 +74,20 @@ better features (e.g. xG) are likely worth more than a fancier model.
 ### Experiments that didn't help
 - **Rest days** (days since each team's last league match): log loss 0.9715 → 0.9720, so not used.
   Our data only has Premier League games, so it misses tiredness from midweek European and cup matches.
+- **All competitions** (Champions League, Europa, Conference League, FA Cup, League Cup — 14,000 team-matches
+  from ESPN, `python src/download_all_comps.py`). Tested, each against the final model (log loss 0.9711):
+
+  | Added feature | Accuracy | Log loss |
+  |---|---|---|
+  | Days since last game (any competition) | 53.6% | 0.9726 |
+  | Games in the last 14 days | 53.7% | 0.9715 |
+  | Played a European game in the last 4 days | 53.5% | 0.9717 |
+  | Points per game, last 5 (all competitions) | 53.6% | 0.9712 |
+  | Goal difference, last 5 (all competitions) | 53.5% | 0.9706 |
+  | All of the above | 53.5% | 0.9736 |
+
+  None of these changes the results by more than random noise, so they're not used. Most likely the
+  bookmaker odds and Elo ratings already reflect how tired or in-form a team is.
 
 ## Progress log
 - Set up the project and the GitHub repo
@@ -83,3 +98,4 @@ better features (e.g. xG) are likely worth more than a fancier model.
 - Compared 5 ML models — logistic regression was best, kept it
 - Tried rest days as a feature — no improvement, left out of the model
 - Added real xG (Opta, via FPL data) — accuracy 52.5% → 53.5%, now the final model
+- Added every team's matches in all competitions (European + cups) and tested fatigue and all-competition form — no real improvement, not used
