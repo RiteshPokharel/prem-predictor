@@ -3,255 +3,255 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Premier League Forecast</title>
+<title>Prem Predictor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     color-scheme: light;
-    --page: #f9f9f7;
-    --surface: #fcfcfb;
-    --ink: #0b0b0b;
-    --ink-2: #52514e;
-    --muted: #898781;
-    --grid: #e1e0d9;
-    --axis: #c3c2b7;
-    --border: rgba(11, 11, 11, 0.10);
+    --page: #f6f7f9;
+    --card: #ffffff;
+    --ink: #0f1419;
+    --ink-2: #4b5563;
+    --muted: #8a919c;
+    --line: #e6e8ec;
+    --line-2: #f0f1f4;
+    --accent: #2a78d6;
     --home: #2a78d6;
-    --draw: #c3c2b7;
-    --draw-ink: #0b0b0b;
     --away: #e34948;
-    --good: #006300;
-    --bad: #d03b3b;
-    --hover: rgba(11, 11, 11, 0.035);
+    --draw: #9a988f;
+    --home-tint: rgba(42, 120, 214, 0.10);
+    --away-tint: rgba(227, 73, 72, 0.10);
+    --draw-tint: rgba(137, 135, 129, 0.12);
+    --up: #00843d;
+    --down: #d03b3b;
+    --up-tint: rgba(0, 132, 61, 0.10);
+    --chip: #eef0f3;
+    --shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
   }
   @media (prefers-color-scheme: dark) {
     :root {
       color-scheme: dark;
-      --page: #0d0d0d;
-      --surface: #1a1a19;
-      --ink: #f0efec;
-      --ink-2: #c3c2b7;
-      --muted: #898781;
-      --grid: #2c2c2a;
-      --axis: #383835;
-      --border: rgba(255, 255, 255, 0.10);
+      --page: #0d1015;
+      --card: #151a21;
+      --ink: #eef0f3;
+      --ink-2: #b4bac4;
+      --muted: #7d8591;
+      --line: #252b34;
+      --line-2: #1c2128;
+      --accent: #3987e5;
       --home: #3987e5;
-      --draw: #5f5e5a;
-      --draw-ink: #f0efec;
       --away: #e66767;
-      --good: #0ca30c;
-      --bad: #e66767;
-      --hover: rgba(255, 255, 255, 0.04);
+      --draw: #8a8880;
+      --home-tint: rgba(57, 135, 229, 0.16);
+      --away-tint: rgba(230, 103, 103, 0.15);
+      --draw-tint: rgba(160, 158, 150, 0.14);
+      --up: #2fbf71;
+      --down: #f07070;
+      --up-tint: rgba(47, 191, 113, 0.14);
+      --chip: #1f252d;
+      --shadow: none;
     }
   }
 
   * { box-sizing: border-box; }
   body {
-    margin: 0;
-    background: var(--page);
-    color: var(--ink);
-    font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
-    -webkit-font-smoothing: antialiased;
+    margin: 0; background: var(--page); color: var(--ink);
+    font: 14px/1.45 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased; font-feature-settings: "cv11", "ss01";
   }
-  .wrap { max-width: 920px; margin: 0 auto; padding: 0 16px; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
   .num { font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
 
-  header { border-bottom: 1px solid var(--border); background: var(--surface); }
-  header .wrap { display: flex; align-items: center; justify-content: space-between; height: 56px; gap: 16px; }
-  .brand { font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; }
-  .brand span { color: var(--muted); font-weight: 400; }
-  nav { display: flex; gap: 4px; }
+  /* top bar */
+  header { position: sticky; top: 0; z-index: 5; background: var(--card); border-bottom: 1px solid var(--line); }
+  header .wrap { display: flex; align-items: center; gap: 28px; height: 60px; }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; letter-spacing: -0.02em; white-space: nowrap; }
+  .logo-mark { width: 26px; height: 26px; border-radius: 7px; background: var(--ink); position: relative; }
+  .logo-mark::after { content: ""; position: absolute; inset: 7px; border-radius: 50%; border: 2px solid var(--card); }
+  nav { display: flex; gap: 6px; }
   nav button {
-    font: inherit; color: var(--ink-2); background: none; border: 0; cursor: pointer;
-    padding: 6px 10px; border-radius: 6px;
+    font: inherit; font-weight: 500; color: var(--ink-2); background: none; border: 0; cursor: pointer;
+    padding: 7px 14px; border-radius: 999px;
   }
-  nav button:hover { background: var(--hover); color: var(--ink); }
-  nav button[aria-selected="true"] { color: var(--ink); font-weight: 600; }
+  nav button:hover { color: var(--ink); background: var(--chip); }
+  nav button[aria-selected="true"] { color: var(--card); background: var(--ink); }
+  .updated { margin-left: auto; color: var(--muted); font-size: 12px; white-space: nowrap; }
 
-  main.wrap { padding-top: 40px; padding-bottom: 64px; }
-  .view[hidden] { display: none; }
-  .head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
-  h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
-  h2 { font-size: 15px; font-weight: 600; margin: 0; }
-  .sub { color: var(--muted); font-size: 13px; }
+  main.wrap { padding-top: 28px; padding-bottom: 72px; }
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+  h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.025em; margin: 0; }
+  h2 { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+  .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .section-title { display: flex; align-items: baseline; justify-content: space-between; margin: 28px 0 12px; }
+  .section-title .sub { margin: 0; }
 
-  .legend { display: flex; gap: 16px; color: var(--ink-2); font-size: 12px; }
-  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
-  .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-  .card-note { color: var(--muted); font-size: 12px; margin: 10px 0 0; }
-
-  .day { color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; margin: 24px 0 6px; }
-  .day:first-child { margin-top: 0; }
-  .match {
-    display: grid; grid-template-columns: 48px 1fr minmax(200px, 300px) 1fr; align-items: center; gap: 14px;
-    padding: 10px 8px; border-radius: 8px;
+  /* market card */
+  .market { padding: 14px 16px 12px; display: flex; flex-direction: column; gap: 10px; transition: border-color .15s; }
+  .market:hover { border-color: var(--muted); }
+  .market-meta { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 12px; font-weight: 500; }
+  .market-title { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+  .score { font-variant-numeric: tabular-nums; }
+  .outcomes { display: flex; flex-direction: column; gap: 6px; }
+  .outcome {
+    position: relative; display: flex; align-items: center; justify-content: space-between;
+    height: 36px; padding: 0 12px; border-radius: 9px; background: var(--line-2); overflow: hidden;
   }
-  .match:hover { background: var(--hover); }
-  .time { color: var(--ink-2); font-size: 13px; }
-  .team { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .team.home { text-align: right; }
-  .team.pick { color: var(--ink); font-weight: 600; }
-  .score { font-weight: 600; color: var(--ink); }
+  .outcome .fill { position: absolute; inset: 0 auto 0 0; border-radius: 9px; }
+  .outcome.h .fill { background: var(--home-tint); }
+  .outcome.d .fill { background: var(--draw-tint); }
+  .outcome.a .fill { background: var(--away-tint); }
+  .outcome .name { position: relative; display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-weight: 500; }
+  .outcome .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .outcome.h .dot { background: var(--home); }
+  .outcome.d .dot { background: var(--draw); }
+  .outcome.a .dot { background: var(--away); }
+  .outcome .pct { position: relative; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  .outcome.top .name, .outcome.top .pct { color: var(--ink); }
+  .outcome.top .pct { font-weight: 700; }
+  .outcome.actual { box-shadow: inset 0 0 0 1.5px var(--ink); }
+  .outcome .tag { font-size: 11px; font-weight: 600; color: var(--ink); background: var(--card); border-radius: 999px; padding: 1px 7px; margin-left: 2px; }
+  .market-foot { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 12px; }
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--chip); color: var(--ink-2); }
+  .pill.up { background: var(--up-tint); color: var(--up); }
 
-  .bar { display: flex; gap: 2px; height: 24px; }
-  .bar div {
-    display: flex; align-items: center; justify-content: center; min-width: 0;
-    color: #fff; font-size: 12px; font-weight: 500; transition: opacity .15s;
-  }
-  .bar div:first-child { border-radius: 6px 0 0 6px; }
-  .bar div:last-child { border-radius: 0 6px 6px 0; }
-  .bar .h { background: var(--home); }
-  .bar .d { background: var(--draw); color: var(--draw-ink); }
-  .bar .a { background: var(--away); }
-  .bar .faded { opacity: 0.25; }
-  .bar .tight { color: transparent !important; }
+  /* featured */
+  .featured { display: grid; grid-template-columns: 340px 1fr; gap: 28px; padding: 22px 24px; margin-bottom: 14px; }
+  .featured .market-title { font-size: 20px; letter-spacing: -0.02em; }
+  .featured .outcome { height: 42px; }
+  .featured-chart { min-width: 0; }
+  .chart-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .legend { display: flex; gap: 14px; font-size: 12px; color: var(--ink-2); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 10px; height: 2px; border-radius: 2px; display: inline-block; }
 
-  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
-  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; }
-  .stat .label { color: var(--ink-2); font-size: 13px; }
-  .stat .value { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; margin-top: 2px; }
+  /* stats strip */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .stat { padding: 18px 22px; }
+  .stat + .stat { border-left: 1px solid var(--line); }
+  .stat .label { color: var(--muted); font-size: 12px; font-weight: 500; }
+  .stat .value { font-size: 30px; font-weight: 700; letter-spacing: -0.03em; margin-top: 4px; }
   .stat .hint { color: var(--muted); font-size: 12px; }
 
-  .result { display: grid; grid-template-columns: 1fr 52px 1fr minmax(160px, 240px) 64px; align-items: center; gap: 14px; padding: 10px 8px; border-radius: 8px; }
-  .result:hover { background: var(--hover); }
-  .result .score { text-align: center; }
-  .verdict { font-size: 12px; font-weight: 500; text-align: right; }
-  .verdict.hit { color: var(--good); }
-  .verdict.miss { color: var(--muted); }
-
-  select {
-    font: inherit; color: var(--ink); background: var(--page); border: 1px solid var(--border);
-    border-radius: 8px; padding: 6px 28px 6px 10px; cursor: pointer; appearance: none;
-    background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
-    background-position: calc(100% - 15px) 52%, calc(100% - 10px) 52%;
-    background-size: 5px 5px; background-repeat: no-repeat;
+  /* teams */
+  .teams-layout { display: grid; grid-template-columns: 1fr 380px; gap: 14px; align-items: start; }
+  .detail { padding: 20px 22px; }
+  .detail-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .detail-name { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+  .detail-value { font-size: 30px; font-weight: 700; letter-spacing: -0.03em; margin-top: 2px; display: flex; align-items: baseline; gap: 10px; }
+  .change { font-size: 13px; font-weight: 600; }
+  .change.up { color: var(--up); }
+  .change.down { color: var(--down); }
+  .change.flat { color: var(--muted); }
+  .facts { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); margin-top: 14px; padding-top: 14px; }
+  .facts div { color: var(--muted); font-size: 12px; }
+  .facts b { display: block; color: var(--ink); font-size: 15px; font-weight: 600; margin-top: 2px; }
+  .rankings { padding: 8px 0; }
+  .rankings h2 { padding: 10px 18px 8px; }
+  .rank-row {
+    display: grid; grid-template-columns: 22px 1fr 54px 44px 50px; align-items: center; gap: 8px;
+    padding: 8px 18px; cursor: pointer;
   }
+  .rank-row:hover, .rank-row.selected { background: var(--line-2); }
+  .rank-row .pos { color: var(--muted); font-size: 12px; }
+  .rank-row .team { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rank-row .rating { text-align: right; font-weight: 600; }
+  .rank-row .change { text-align: right; font-size: 12px; }
+  .scatter-card { padding: 20px 22px; margin-top: 14px; }
 
   svg { display: block; overflow: visible; }
-  svg text { font: 11px system-ui, -apple-system, "Segoe UI", sans-serif; fill: var(--muted); }
-  svg .label { fill: var(--ink-2); }
-  svg .gridline { stroke: var(--grid); stroke-width: 1; }
-  svg .ref { stroke: var(--axis); stroke-width: 1; stroke-dasharray: 4 4; }
-
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { color: var(--muted); font-weight: 500; text-align: right; padding: 8px 6px; border-bottom: 1px solid var(--border); }
-  td { text-align: right; padding: 7px 6px; border-bottom: 1px solid var(--border); }
-  th:nth-child(2), td:nth-child(2) { text-align: left; }
-  th:first-child, td:first-child { color: var(--muted); width: 28px; }
-  tbody tr { cursor: pointer; }
-  tbody tr:hover { background: var(--hover); }
-  tbody tr.selected td { background: var(--hover); font-weight: 600; }
-  td.pts { font-weight: 600; }
+  svg text { font: 11px Inter, system-ui, sans-serif; fill: var(--muted); }
+  svg .label { fill: var(--ink-2); font-weight: 500; }
+  svg .gridline { stroke: var(--line); stroke-width: 1; }
+  svg .ref { stroke: var(--muted); stroke-opacity: .6; stroke-width: 1; stroke-dasharray: 3 4; }
 
   #tip {
-    position: fixed; pointer-events: none; z-index: 10; opacity: 0; transition: opacity .1s;
-    background: var(--surface); color: var(--ink); border: 1px solid var(--border); border-radius: 8px;
-    padding: 6px 10px; font-size: 12px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); white-space: nowrap;
+    position: fixed; pointer-events: none; z-index: 20; opacity: 0; transition: opacity .1s;
+    background: var(--ink); color: var(--card); border-radius: 8px; padding: 6px 10px; font-size: 12px; white-space: nowrap;
   }
-  #tip b { font-weight: 600; }
-  #tip span { color: var(--ink-2); }
+  #tip span { opacity: .7; }
 
   footer.wrap { color: var(--muted); font-size: 12px; padding-bottom: 40px; }
 
+  @media (max-width: 980px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+    .featured { grid-template-columns: 1fr; }
+    .teams-layout { grid-template-columns: 1fr; }
+  }
   @media (max-width: 640px) {
-    header .wrap { height: auto; padding: 12px 16px; flex-direction: column; align-items: flex-start; gap: 6px; }
-    nav { margin-left: -10px; }
-    main.wrap { padding-top: 24px; }
-    .match { grid-template-columns: 1fr auto 1fr; grid-template-areas: "home time away" "bar bar bar"; gap: 6px 10px; }
-    .match .time { grid-area: time; text-align: center; }
-    .match .home { grid-area: home; text-align: left; }
-    .match .away { grid-area: away; text-align: right; }
-    .match .bar { grid-area: bar; }
-    .result { grid-template-columns: 1fr auto 1fr; grid-template-areas: "home score away" "bar bar verdict"; gap: 6px 10px; }
-    .result .home { grid-area: home; text-align: left; }
-    .result .score { grid-area: score; }
-    .result .away { grid-area: away; text-align: right; }
-    .result .bar { grid-area: bar; }
-    .result .verdict { grid-area: verdict; }
-    .stats { gap: 8px; }
-    .stat { padding: 12px; }
-    .stat .label, .stat .hint { font-size: 11px; }
+    .wrap { padding: 0 16px; }
+    header .wrap { height: auto; flex-wrap: wrap; gap: 10px 16px; padding-top: 12px; padding-bottom: 10px; }
+    nav { order: 3; width: 100%; margin-left: -4px; }
+    .grid { grid-template-columns: 1fr; }
+    .featured { padding: 18px; gap: 18px; }
+    .stat { padding: 14px; }
     .stat .value { font-size: 22px; }
-    .card { padding: 16px; }
-    .hide-sm { display: none; }
+    .facts { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   }
 </style>
 </head>
 <body>
 <header>
   <div class="wrap">
-    <div class="brand">Premier League Forecast <span>· 2026/27</span></div>
+    <div class="logo"><span class="logo-mark"></span>Prem Predictor</div>
     <nav>
-      <button data-view="fixtures" aria-selected="true">Fixtures</button>
-      <button data-view="record" aria-selected="false">Track record</button>
+      <button data-view="fixtures" aria-selected="true">Matches</button>
+      <button data-view="record" aria-selected="false">Results</button>
       <button data-view="teams" aria-selected="false">Teams</button>
     </nav>
+    <div class="updated" id="updated"></div>
   </div>
 </header>
 
 <main class="wrap">
-  <section class="view" id="fixtures">
-    <div class="head">
+  <section id="fixtures">
+    <div class="page-head">
       <div>
-        <h1>Upcoming matches</h1>
+        <h1 id="fixtures-title">Upcoming matches</h1>
         <div class="sub" id="fixtures-sub"></div>
       </div>
-      <div class="legend">
-        <span><i style="background:var(--home)"></i>Home win</span>
-        <span><i style="background:var(--draw)"></i>Draw</span>
-        <span><i style="background:var(--away)"></i>Away win</span>
-      </div>
     </div>
-    <div class="card" id="fixture-list"></div>
-    <p class="card-note" id="fixtures-note"></p>
+    <div class="card featured" id="featured"></div>
+    <div class="grid" id="market-grid"></div>
+    <p class="sub" id="fixtures-note" style="margin-top:14px"></p>
   </section>
 
-  <section class="view" id="record" hidden>
-    <div class="head">
+  <section id="record" hidden>
+    <div class="page-head">
       <div>
-        <h1>Track record</h1>
-        <div class="sub">Every prediction, checked against the real result.</div>
+        <h1>Results</h1>
+        <div class="sub">Every forecast, checked against the final score.</div>
       </div>
     </div>
-    <div class="stats" id="record-stats"></div>
-    <div class="card" id="record-weekly" hidden>
-      <div class="card-head"><h2>Correct picks by week</h2></div>
-      <div id="weekly-chart"></div>
-      <p class="card-note">Dashed line: 53.5%, the accuracy the model reached in testing on past seasons.</p>
-    </div>
-    <div class="card" id="record-list"></div>
+    <div class="card stats" id="record-stats"></div>
+    <div id="record-days"></div>
   </section>
 
-  <section class="view" id="teams" hidden>
-    <div class="head">
+  <section id="teams" hidden>
+    <div class="page-head">
       <div>
         <h1>Teams</h1>
-        <div class="sub">Strength ratings and chance quality behind the predictions.</div>
+        <div class="sub">Strength ratings and chance quality behind every forecast.</div>
       </div>
     </div>
-    <div class="card">
-      <div class="card-head">
-        <h2>Strength rating</h2>
-        <select id="team-select" aria-label="Team"></select>
+    <div class="teams-layout">
+      <div>
+        <div class="card detail" id="team-detail"></div>
+        <div class="card scatter-card">
+          <h2>Attack vs defence</h2>
+          <div class="sub" style="margin-bottom:10px">Expected goals per game, last 20 league matches</div>
+          <div id="xg-chart"></div>
+        </div>
       </div>
-      <div id="elo-chart"></div>
-      <p class="card-note">Elo rating since the start of last season. 1500 is an average Premier League team.</p>
-    </div>
-    <div class="card">
-      <div class="card-head"><h2>Attack and defence</h2></div>
-      <div id="xg-chart"></div>
-      <p class="card-note">Expected goals per game over each team's last 20 league matches. Top right is best.</p>
-    </div>
-    <div class="card">
-      <div class="card-head"><h2>Table</h2></div>
-      <table>
-        <thead><tr>
-          <th></th><th>Team</th><th>P</th><th class="hide-sm">W</th><th class="hide-sm">D</th><th class="hide-sm">L</th>
-          <th>GD</th><th>Pts</th><th>Rating</th>
-        </tr></thead>
-        <tbody id="table-body"></tbody>
-      </table>
+      <div class="card rankings">
+        <h2>Power rankings</h2>
+        <div id="rank-list"></div>
+      </div>
     </div>
   </section>
 </main>
@@ -262,341 +262,360 @@
 <script>const DATA = /*DATA*/null;</script>
 <script>
 const SVG = "http://www.w3.org/2000/svg";
-const OUTCOMES = [["pH", "h", "Home win"], ["pD", "d", "Draw"], ["pA", "a", "Away win"]];
 
 function el(tag, attrs = {}, ...children) {
   const node = tag.startsWith("svg:") ? document.createElementNS(SVG, tag.slice(4)) : document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
     if (k === "text") node.textContent = v;
-    else if (k === "class") node.setAttribute("class", v);
     else node.setAttribute(k, v);
   }
-  for (const c of children) if (c) node.append(c);
+  for (const c of children) if (c != null && c !== false) node.append(c);
   return node;
 }
 
 const pct = p => `${Math.round(p * 100)}%`;
-const parseDay = s => new Date(`${s.slice(0, 10)}T12:00:00Z`);
-const dayName = s => parseDay(s).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
-const shortDate = s => parseDay(s).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
-
-const tip = document.getElementById("tip");
-function showTip(event, html) {
-  tip.innerHTML = html;
-  tip.style.opacity = 1;
-  const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
-  let x = event.clientX + pad, y = event.clientY - h - pad;
-  if (x + w > window.innerWidth - 8) x = event.clientX - w - pad;
-  if (y < 8) y = event.clientY + pad;
-  tip.style.left = `${x}px`;
-  tip.style.top = `${y}px`;
-}
-const hideTip = () => { tip.style.opacity = 0; };
+const day = s => new Date(`${s.slice(0, 10)}T12:00:00Z`);
+const fmt = (s, opts) => day(s).toLocaleDateString("en-GB", { timeZone: "UTC", ...opts });
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
-function probBar(m, actual) {
-  const bar = el("div", { class: "bar" });
-  for (const [key, cls, name] of OUTCOMES) {
-    const seg = el("div", { class: cls, style: `flex: ${m[key]} 1 0` }, el("span", { text: pct(m[key]) }));
-    if (actual && actual !== name.split(" ")[0]) seg.classList.add("faded");
-    seg.addEventListener("mousemove", e => showTip(e, `<b>${esc(name)}</b> <span>${pct(m[key])}</span>`));
-    seg.addEventListener("mouseleave", hideTip);
-    bar.append(seg);
-  }
-  return bar;
+const tip = document.getElementById("tip");
+function showTip(e, html) {
+  tip.innerHTML = html;
+  tip.style.opacity = 1;
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = e.clientX + 12, y = e.clientY - h - 12;
+  if (x + w > innerWidth - 8) x = e.clientX - w - 12;
+  if (y < 8) y = e.clientY + 14;
+  tip.style.left = `${x}px`; tip.style.top = `${y}px`;
+}
+const hideTip = () => { tip.style.opacity = 0; };
+function hover(node, html) {
+  node.addEventListener("mousemove", e => showTip(e, html()));
+  node.addEventListener("mouseleave", hideTip);
 }
 
-const favourite = m => m.pH >= m.pA ? "home" : "away";
-
-// hide a percentage when its segment is too narrow to show it fully
-function fitLabels() {
-  for (const seg of document.querySelectorAll(".bar div")) {
-    seg.classList.toggle("tight", seg.firstChild.offsetWidth > seg.clientWidth - 6);
-  }
+/* ---------- shared pieces ---------- */
+function outcomes(m, actual) {
+  const rows = [["h", m.home, m.pH, "Home"], ["d", "Draw", m.pD, "Draw"], ["a", m.away, m.pA, "Away"]];
+  const best = Math.max(m.pH, m.pD, m.pA);
+  return el("div", { class: "outcomes" }, ...rows.map(([cls, name, p, key]) => {
+    const row = el("div", { class: `outcome ${cls}${p === best ? " top" : ""}${actual === key ? " actual" : ""}` },
+      el("div", { class: "fill", style: `width:${(p * 100).toFixed(1)}%` }),
+      el("div", { class: "name" }, el("span", { class: "dot" }), name, actual === key ? el("span", { class: "tag", text: "Result" }) : null),
+      el("div", { class: "pct", text: pct(p) }));
+    hover(row, () => `<b>${esc(name)}</b> <span>${pct(p)} chance</span>`);
+    return row;
+  }));
 }
 
-/* ---------- Fixtures ---------- */
-function renderFixtures() {
-  const list = document.getElementById("fixture-list");
-  const rounds = [...new Set(DATA.fixtures.map(m => m.round).filter(r => r))];
-  const zone = DATA.fixtures.length && DATA.fixtures[0].kickoff.endsWith("+01:00") ? "BST" : "GMT";
-  document.getElementById("fixtures-sub").textContent =
-    `${rounds.length ? "Gameweek " + rounds.join(" & ") + " · " : ""}UK time (${zone}) · results up to ${shortDate(DATA.updated)}`;
-
-  let lastDay = null;
-  for (const m of DATA.fixtures) {
-    const day = m.kickoff.slice(0, 10);
-    if (day !== lastDay) { list.append(el("div", { class: "day", text: dayName(day) })); lastDay = day; }
-    const time = el("div", { class: "time num", text: m.kickoff.slice(11, 16) });
-    const fav = favourite(m);
-    list.append(el("div", { class: "match" },
-      time,
-      el("div", { class: `team home ${fav === "home" ? "pick" : ""}`, text: m.home }),
-      probBar(m),
-      el("div", { class: `team away ${fav === "away" ? "pick" : ""}`, text: m.away }),
-    ));
-  }
-  const withOdds = DATA.fixtures.filter(m => m.odds), without = DATA.fixtures.filter(m => !m.odds);
-  const names = list => list.map(m => `${m.home} v ${m.away}`).join(", ");
-  document.getElementById("fixtures-note").textContent =
-    !without.length ? "" :
-    !withOdds.length ? "Bookmaker odds aren't out yet, so these forecasts use ratings and xG only. They'll sharpen once odds are published." :
-    withOdds.length <= without.length
-      ? `Bookmaker odds are only out for ${names(withOdds)} so far. The others use ratings and xG only and will sharpen once odds are published.`
-      : `Bookmaker odds aren't out yet for ${names(without)}, so those use ratings and xG only.`;
+function ratingSeries(team) {
+  return (DATA.ratings[team] || []).map(([d, season, elo]) => ({ d, t: day(d).getTime(), season, elo }));
 }
 
-/* ---------- Track record ---------- */
-function renderRecord() {
-  const rec = DATA.record;
-  const stats = document.getElementById("record-stats");
-  const list = document.getElementById("record-list");
-  if (!rec.length) { list.append(el("div", { class: "sub", text: "No predicted matches have been played yet." })); return; }
-
-  const hits = rec.filter(r => r.correct).length;
-  const stat = (label, value, hint) => el("div", { class: "stat" },
-    el("div", { class: "label", text: label }), el("div", { class: "value num", text: value }), el("div", { class: "hint", text: hint }));
-  stats.append(
-    stat("Picked correctly", pct(hits / rec.length), `${hits} of ${rec.length} matches`),
-    stat("Expected", "53.5%", "from testing on past seasons"),
-    stat("Matches checked", String(rec.length), `since ${shortDate(rec.reduce((a, r) => r.date < a ? r.date : a, rec[0].date))}`),
-  );
-
-  const sorted = [...rec].sort((a, b) => b.date.localeCompare(a.date));
-  let lastDay = null;
-  for (const r of sorted) {
-    if (r.date !== lastDay) { list.append(el("div", { class: "day", text: dayName(r.date) })); lastDay = r.date; }
-    list.append(el("div", { class: "result" },
-      el("div", { class: "team home", text: r.home }),
-      el("div", { class: "score num", text: `${r.hg} – ${r.ag}` }),
-      el("div", { class: "team away", text: r.away }),
-      probBar(r, r.result),
-      el("div", { class: `verdict ${r.correct ? "hit" : "miss"}`, text: r.correct ? "Correct" : "Missed" }),
-    ));
-  }
-  renderWeekly();
-}
-
-function weekStart(d) {
-  const date = parseDay(d);
-  date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7));
-  return date.toISOString().slice(0, 10);
-}
-
-function renderWeekly() {
-  const weeks = {};
-  for (const r of DATA.record) (weeks[weekStart(r.date)] ??= []).push(r.correct);
-  const rows = Object.entries(weeks).sort().map(([w, v]) => ({ w, rate: v.filter(Boolean).length / v.length, n: v.length }));
-  if (rows.length < 2) return;
-  document.getElementById("record-weekly").hidden = false;
-
-  const box = document.getElementById("weekly-chart");
-  const W = box.clientWidth, H = 180, m = { t: 8, r: 8, b: 24, l: 36 };
-  if (!W) return;
-  const svg = el("svg:svg", { width: W, height: H });
-  const y = v => m.t + (1 - v) * (H - m.t - m.b);
-  for (const v of [0, 0.25, 0.5, 0.75, 1]) {
-    svg.append(el("svg:line", { class: "gridline", x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }));
-    svg.append(el("svg:text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end", text: pct(v) }));
-  }
-  const step = (W - m.l - m.r) / rows.length, bw = Math.min(28, step * 0.6);
-  rows.forEach((r, i) => {
-    const cx = m.l + step * (i + 0.5);
-    const bar = el("svg:path", { d: roundedBar(cx - bw / 2, y(r.rate), bw, y(0) - y(r.rate), 4), fill: "var(--home)" });
-    bar.addEventListener("mousemove", e => showTip(e, `<b>Week of ${esc(shortDate(r.w))}</b><br><span>${pct(r.rate)} correct · ${r.n} matches</span>`));
-    bar.addEventListener("mouseleave", hideTip);
-    svg.append(bar, el("svg:text", { x: cx, y: H - 6, "text-anchor": "middle",
-      text: parseDay(r.w).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }) }));
-  });
-  svg.append(el("svg:line", { class: "ref", x1: m.l, x2: W - m.r, y1: y(0.535), y2: y(0.535) }));
-  box.replaceChildren(svg);
-}
-
-function roundedBar(x, y, w, h, r) {
-  r = Math.min(r, h, w / 2);
-  return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
-}
-
-/* ---------- Teams ---------- */
-let selectedTeam = null;
+const currentSeason = Object.values(DATA.ratings).flat().reduce((a, r) => r[1] > a ? r[1] : a, "");
 
 function niceTicks(lo, hi, count) {
   const raw = (hi - lo) / count, mag = 10 ** Math.floor(Math.log10(raw));
   const step = [1, 2, 5, 10].map(s => s * mag).find(s => s >= raw);
-  const ticks = [];
-  for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) ticks.push(+v.toFixed(10));
-  return ticks;
+  const out = [];
+  for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) out.push(+v.toFixed(10));
+  return out;
 }
 
-function renderElo() {
-  const box = document.getElementById("elo-chart");
-  const rows = DATA.ratings[selectedTeam] || [];
-  if (!rows.length) { box.replaceChildren(); return; }
-  const pts = rows.map(([d, season, elo]) => ({ t: parseDay(d).getTime(), d, season, elo }));
-  const W = box.clientWidth, H = 240, m = { t: 12, r: 44, b: 26, l: 40 };
+// line chart of one or more rating series, with a hover crosshair
+function lineChart(box, series, { height = 240, since = null } = {}) {
+  const W = box.clientWidth;
   if (!W) return;
-  const t0 = pts[0].t, t1 = pts[pts.length - 1].t;
-  const lo = Math.min(1500, ...pts.map(p => p.elo)) - 15, hi = Math.max(1500, ...pts.map(p => p.elo)) + 15;
+  const H = height, m = { t: 10, r: 48, b: 24, l: 40 };
+  const lines = series.map(s => ({ ...s, pts: s.pts.filter(p => since == null || p.t >= since) })).filter(s => s.pts.length);
+  if (!lines.length) { box.replaceChildren(); return; }
+  const all = lines.flatMap(s => s.pts);
+  const t0 = Math.min(...all.map(p => p.t)), t1 = Math.max(...all.map(p => p.t));
+  const lo = Math.min(1500, ...all.map(p => p.elo)) - 12, hi = Math.max(1500, ...all.map(p => p.elo)) + 12;
   const x = t => m.l + (t - t0) / (t1 - t0 || 1) * (W - m.l - m.r);
   const y = v => m.t + (hi - v) / (hi - lo) * (H - m.t - m.b);
   const svg = el("svg:svg", { width: W, height: H });
 
   for (const v of niceTicks(lo, hi, 4)) {
-    svg.append(el("svg:line", { class: "gridline", x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }));
-    svg.append(el("svg:text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end", text: v.toLocaleString("en-GB") }));
+    svg.append(el("svg:line", { class: "gridline", x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }),
+               el("svg:text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end", text: v }));
   }
-  const start = new Date(t0);
-  for (let d = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 1)); d.getTime() <= t1; d.setUTCMonth(d.getUTCMonth() + 2)) {
-    const label = d.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" }) + (d.getUTCMonth() < 2 ? ` ’${String(d.getUTCFullYear()).slice(2)}` : "");
-    svg.append(el("svg:text", { x: x(d.getTime()), y: H - 6, "text-anchor": "middle", text: label }));
+  const stepMonths = (t1 - t0) / 864e5 > 200 ? 2 : 1;
+  const s = new Date(t0);
+  for (let d = new Date(Date.UTC(s.getUTCFullYear(), s.getUTCMonth() + 1, 1)); d.getTime() <= t1; d.setUTCMonth(d.getUTCMonth() + stepMonths)) {
+    svg.append(el("svg:text", { x: x(d.getTime()), y: H - 4, "text-anchor": "middle",
+      text: d.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" }) }));
   }
   svg.append(el("svg:line", { class: "ref", x1: m.l, x2: W - m.r, y1: y(1500), y2: y(1500) }));
-  svg.append(el("svg:text", { x: W - m.r + 6, y: y(1500) + 4, text: "Average" }));
 
-  for (const season of [...new Set(pts.map(p => p.season))]) {
-    const seg = pts.filter(p => p.season === season);
-    svg.append(el("svg:path", {
-      d: seg.map((p, i) => `${i ? "L" : "M"}${x(p.t).toFixed(1)},${y(p.elo).toFixed(1)}`).join(""),
-      fill: "none", stroke: "var(--home)", "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round",
-    }));
+  for (const line of lines) {
+    for (const season of new Set(line.pts.map(p => p.season))) {
+      const seg = line.pts.filter(p => p.season === season);
+      svg.append(el("svg:path", { d: seg.map((p, i) => `${i ? "L" : "M"}${x(p.t).toFixed(1)},${y(p.elo).toFixed(1)}`).join(""),
+        fill: "none", stroke: line.color, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+    }
+    const last = line.pts[line.pts.length - 1];
+    svg.append(el("svg:circle", { cx: x(last.t), cy: y(last.elo), r: 3.5, fill: line.color, stroke: "var(--card)", "stroke-width": 2 }));
   }
-  const last = pts[pts.length - 1];
-  svg.append(el("svg:circle", { cx: x(last.t), cy: y(last.elo), r: 4, fill: "var(--home)", stroke: "var(--surface)", "stroke-width": 2 }));
-  svg.append(el("svg:text", { class: "label", x: x(last.t) + 8, y: y(last.elo) + 4, text: Math.round(last.elo) }));
+  // value labels at the line ends, nudged apart if they collide
+  const ends = lines.map(l => ({ l, yy: y(l.pts[l.pts.length - 1].elo) })).sort((a, b) => a.yy - b.yy);
+  for (let i = 1; i < ends.length; i++) if (ends[i].yy - ends[i - 1].yy < 13) ends[i].yy = ends[i - 1].yy + 13;
+  for (const { l, yy } of ends) {
+    svg.append(el("svg:text", { class: "label", x: W - m.r + 8, y: yy + 4, text: Math.round(l.pts[l.pts.length - 1].elo) }));
+  }
 
-  const cross = el("svg:line", { stroke: "var(--axis)", y1: m.t, y2: H - m.b, visibility: "hidden" });
-  const dot = el("svg:circle", { r: 4, fill: "var(--home)", stroke: "var(--surface)", "stroke-width": 2, visibility: "hidden" });
-  const hit = el("svg:rect", { x: m.l, y: 0, width: W - m.l - m.r, height: H, fill: "transparent" });
+  const cross = el("svg:line", { stroke: "var(--muted)", "stroke-opacity": .5, y1: m.t, y2: H - m.b, visibility: "hidden" });
+  const dots = lines.map(l => el("svg:circle", { r: 4, fill: l.color, stroke: "var(--card)", "stroke-width": 2, visibility: "hidden" }));
+  const hit = el("svg:rect", { x: m.l, y: 0, width: Math.max(0, W - m.l - m.r), height: H, fill: "transparent" });
+  const nearest = (pts, mx) => pts.reduce((a, b) => Math.abs(x(b.t) - mx) < Math.abs(x(a.t) - mx) ? b : a);
   hit.addEventListener("mousemove", e => {
     const mx = e.clientX - svg.getBoundingClientRect().left;
-    const p = pts.reduce((a, b) => Math.abs(x(b.t) - mx) < Math.abs(x(a.t) - mx) ? b : a);
-    for (const n of [cross, dot]) n.setAttribute("visibility", "visible");
-    cross.setAttribute("x1", x(p.t)); cross.setAttribute("x2", x(p.t));
-    dot.setAttribute("cx", x(p.t)); dot.setAttribute("cy", y(p.elo));
-    showTip(e, `<b>${Math.round(p.elo)}</b> <span>${esc(shortDate(p.d))}</span>`);
+    const near = lines.map(l => nearest(l.pts, mx));
+    const ref = nearest(near, mx);
+    cross.setAttribute("x1", x(ref.t)); cross.setAttribute("x2", x(ref.t)); cross.setAttribute("visibility", "visible");
+    near.forEach((p, i) => { dots[i].setAttribute("cx", x(p.t)); dots[i].setAttribute("cy", y(p.elo)); dots[i].setAttribute("visibility", "visible"); });
+    showTip(e, `<span>${esc(fmt(ref.d, { day: "numeric", month: "short", year: "numeric" }))}</span><br>` +
+      lines.map((l, i) => `${esc(l.name)} <b>${Math.round(near[i].elo)}</b>`).join("<br>"));
   });
-  hit.addEventListener("mouseleave", () => { hideTip(); for (const n of [cross, dot]) n.setAttribute("visibility", "hidden"); });
-  svg.append(cross, dot, hit);
+  hit.addEventListener("mouseleave", () => { hideTip(); cross.setAttribute("visibility", "hidden"); dots.forEach(d => d.setAttribute("visibility", "hidden")); });
+  svg.append(cross, ...dots, hit);
   box.replaceChildren(svg);
 }
 
-function renderXg() {
-  const box = document.getElementById("xg-chart");
-  const teams = DATA.table.filter(t => t.xgf != null && t.xga != null);
-  const W = box.clientWidth, H = Math.min(420, Math.max(300, W * 0.55)), m = { t: 12, r: 16, b: 40, l: 44 };
-  if (!W) return;
-  const xs = teams.map(t => t.xgf), ys = teams.map(t => t.xga);
-  const xlo = Math.min(...xs) - 0.1, xhi = Math.max(...xs) + 0.1, ylo = Math.min(...ys) - 0.1, yhi = Math.max(...ys) + 0.1;
-  const x = v => m.l + (v - xlo) / (xhi - xlo) * (W - m.l - m.r);
-  const y = v => m.t + (v - ylo) / (yhi - ylo) * (H - m.t - m.b);
-  const svg = el("svg:svg", { width: W, height: H });
-
-  for (const v of niceTicks(xlo, xhi, 6)) {
-    svg.append(el("svg:line", { class: "gridline", x1: x(v), x2: x(v), y1: m.t, y2: H - m.b }));
-    svg.append(el("svg:text", { x: x(v), y: H - m.b + 16, "text-anchor": "middle", text: v.toFixed(1) }));
-  }
-  for (const v of niceTicks(ylo, yhi, 5)) {
-    svg.append(el("svg:line", { class: "gridline", x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }));
-    svg.append(el("svg:text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end", text: v.toFixed(1) }));
-  }
-  svg.append(el("svg:text", { x: (m.l + W - m.r) / 2, y: H - 4, "text-anchor": "middle", text: "Chances created (xG per game)" }));
-  svg.append(el("svg:text", { x: -(m.t + H - m.b) / 2, y: 12, transform: "rotate(-90)", "text-anchor": "middle", text: "Chances allowed (xG per game)" }));
-
-  const mean = a => a.reduce((s, v) => s + v, 0) / a.length;
-  svg.append(el("svg:line", { class: "ref", x1: x(mean(xs)), x2: x(mean(xs)), y1: m.t, y2: H - m.b }));
-  svg.append(el("svg:line", { class: "ref", x1: m.l, x2: W - m.r, y1: y(mean(ys)), y2: y(mean(ys)) }));
-  svg.append(el("svg:text", { x: W - m.r - 4, y: m.t + 12, "text-anchor": "end", text: "Strong attack, tight defence" }));
-  svg.append(el("svg:text", { x: m.l + 6, y: H - m.b - 8, text: "Weak attack, leaky defence" }));
-
-  const dots = [];
-  for (const t of teams) {
-    const dot = el("svg:circle", { cx: x(t.xgf), cy: y(t.xga), r: t.Team === selectedTeam ? 6 : 5,
-      fill: "var(--home)", stroke: "var(--surface)", "stroke-width": 2, style: "cursor:pointer" });
-    dot.addEventListener("mousemove", e => showTip(e, `<b>${esc(t.Team)}</b><br><span>Created ${t.xgf.toFixed(2)} · Allowed ${t.xga.toFixed(2)}</span>`));
-    dot.addEventListener("mouseleave", hideTip);
-    dot.addEventListener("click", () => selectTeam(t.Team));
-    svg.append(dot);
-    dots.push({ x: x(t.xgf), y: y(t.xga) });
-  }
-  box.replaceChildren(svg);
-
-  // place each name beside its dot where it doesn't cover another dot or name
-  const placed = [];
-  const overlaps = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
-  teams.forEach((t, i) => {
-    const label = el("svg:text", { class: "label", text: t.Team });
-    if (t.Team === selectedTeam) label.setAttribute("style", "font-weight:600;fill:var(--ink)");
-    svg.append(label);
-    const w = label.getComputedTextLength(), h = 12, cx = dots[i].x, cy = dots[i].y;
-    const options = [
-      { x: cx + 9, y: cy - h / 2, anchor: "start" }, { x: cx - 9 - w, y: cy - h / 2, anchor: "end" },
-      { x: cx - w / 2, y: cy - 9 - h, anchor: "middle" }, { x: cx - w / 2, y: cy + 9, anchor: "middle" },
-    ];
-    const ok = o => {
-      const b = { x: o.x, y: o.y, w, h };
-      if (b.x < m.l || b.x + w > W - m.r + 12 || b.y < 0 || b.y + h > H - m.b) return false;
-      if (dots.some((d, j) => j !== i && overlaps(b, { x: d.x - 6, y: d.y - 6, w: 12, h: 12 }))) return false;
-      return !placed.some(p => overlaps(b, p));
-    };
-    const o = options.find(ok) || options[0];
-    placed.push({ x: o.x, y: o.y, w, h });
-    const ax = o.anchor === "start" ? o.x : o.anchor === "end" ? o.x + w : o.x + w / 2;
-    label.setAttribute("x", ax);
-    label.setAttribute("y", o.y + h - 2);
-    label.setAttribute("text-anchor", o.anchor);
-  });
+function sparkline(pts, color) {
+  const W = 54, H = 20;
+  if (pts.length < 2) return el("svg:svg", { width: W, height: H });
+  const lo = Math.min(...pts), hi = Math.max(...pts);
+  const x = i => i / (pts.length - 1) * W, y = v => H - 2 - (v - lo) / (hi - lo || 1) * (H - 4);
+  return el("svg:svg", { width: W, height: H },
+    el("svg:path", { d: pts.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(""),
+      fill: "none", stroke: color, "stroke-width": 1.5, "stroke-linejoin": "round" }));
 }
 
-function renderTable() {
-  const body = document.getElementById("table-body");
-  body.replaceChildren(...DATA.table.map(t => {
-    const gd = t.GD > 0 ? `+${t.GD}` : String(t.GD);
-    const row = el("tr", { class: t.Team === selectedTeam ? "selected" : "" },
-      el("td", { class: "num", text: t.Pos }), el("td", { text: t.Team }), el("td", { class: "num", text: t.P }),
-      el("td", { class: "num hide-sm", text: t.W }), el("td", { class: "num hide-sm", text: t.D }), el("td", { class: "num hide-sm", text: t.L }),
-      el("td", { class: "num", text: gd }), el("td", { class: "num pts", text: t.Pts }), el("td", { class: "num", text: t.Elo }));
+function change(team, games = 5) {
+  const pts = ratingSeries(team);
+  if (pts.length < 2) return 0;
+  return pts[pts.length - 1].elo - pts[Math.max(0, pts.length - 1 - games)].elo;
+}
+function changeText(c) {
+  const r = Math.round(c);
+  return r > 0 ? ["up", `▲ ${r}`] : r < 0 ? ["down", `▼ ${-r}`] : ["flat", "–"];
+}
+
+/* ---------- Matches ---------- */
+let featuredMatch = null;
+
+function kickoffText(m) {
+  return `${fmt(m.kickoff, { weekday: "short", day: "numeric", month: "short" })} · ${m.kickoff.slice(11, 16)}`;
+}
+
+function renderFixtures() {
+  const fx = DATA.fixtures;
+  const rounds = [...new Set(fx.map(m => m.round).filter(Boolean))];
+  const zone = fx.length && fx[0].kickoff.endsWith("+01:00") ? "BST" : "GMT";
+  document.getElementById("fixtures-title").textContent = rounds.length ? `Gameweek ${rounds[rounds.length - 1]}` : "Upcoming matches";
+  document.getElementById("fixtures-sub").textContent = `${fx.length} matches · kick-off times in UK time (${zone})`;
+
+  const rating = t => (DATA.table.find(r => r.Team === t) || {}).Elo || 0;
+  featuredMatch = [...fx].sort((a, b) => (rating(b.home) + rating(b.away)) - (rating(a.home) + rating(a.away)))[0];
+
+  document.getElementById("market-grid").replaceChildren(...fx.filter(m => m !== featuredMatch).map(marketCard));
+  renderFeatured();
+
+  const without = fx.filter(m => !m.odds).length;
+  document.getElementById("fixtures-note").textContent = without
+    ? "“Model only” means bookmaker odds aren't out yet, so the forecast uses ratings and xG alone. It updates once odds are published."
+    : "";
+}
+
+function marketCard(m) {
+  return el("div", { class: "card market" },
+    el("div", { class: "market-meta" }, el("span", { text: kickoffText(m) }), el("span", { text: m.round ? `GW${m.round}` : "" })),
+    el("div", { class: "market-title", text: `${m.home} vs ${m.away}` }),
+    outcomes(m),
+    el("div", { class: "market-foot" }, el("span", { class: "pill", text: m.odds ? "Model + odds" : "Model only" })));
+}
+
+function renderFeatured() {
+  const m = featuredMatch, box = document.getElementById("featured");
+  if (!m) { box.hidden = true; return; }
+  const chart = el("div");
+  box.replaceChildren(
+    el("div", {},
+      el("div", { class: "market-meta", style: "margin-bottom:6px" }, el("span", { text: `Featured · ${kickoffText(m)}` })),
+      el("div", { class: "market-title", style: "margin-bottom:14px", text: `${m.home} vs ${m.away}` }),
+      outcomes(m),
+      el("div", { class: "market-foot", style: "margin-top:12px" },
+        el("span", { class: "pill", text: m.odds ? "Model + odds" : "Model only" }),
+        el("span", { text: m.round ? `Gameweek ${m.round}` : "" }))),
+    el("div", { class: "featured-chart" },
+      el("div", { class: "chart-head" },
+        el("h2", { text: "Strength this season" }),
+        el("div", { class: "legend" },
+          el("span", {}, el("i", { style: "background:var(--home)" }), m.home),
+          el("span", {}, el("i", { style: "background:var(--away)" }), m.away))),
+      chart));
+  const thisSeason = t => ratingSeries(t).filter(p => p.season === currentSeason);
+  lineChart(chart, [
+    { name: m.home, color: "var(--home)", pts: thisSeason(m.home) },
+    { name: m.away, color: "var(--away)", pts: thisSeason(m.away) },
+  ], { height: 230 });
+}
+
+/* ---------- Results ---------- */
+function renderRecord() {
+  const rec = DATA.record, stats = document.getElementById("record-stats"), days = document.getElementById("record-days");
+  if (!rec.length) { stats.hidden = true; days.append(el("p", { class: "sub", text: "No forecasts have been settled yet." })); return; }
+  const hits = rec.filter(r => r.correct).length;
+  const stat = (label, value, hint) => el("div", { class: "stat" },
+    el("div", { class: "label", text: label }), el("div", { class: "value num", text: value }), el("div", { class: "hint", text: hint }));
+  const first = rec.reduce((a, r) => r.date < a ? r.date : a, rec[0].date);
+  stats.replaceChildren(
+    stat("Correct picks", pct(hits / rec.length), `${hits} of ${rec.length} matches`),
+    stat("Expected", "53.5%", "from testing on past seasons"),
+    stat("Settled", String(rec.length), `since ${fmt(first, { day: "numeric", month: "short" })}`));
+
+  const byDay = {};
+  for (const r of rec) (byDay[r.date] ??= []).push(r);
+  days.replaceChildren(...Object.keys(byDay).sort().reverse().flatMap(d => [
+    el("div", { class: "section-title" },
+      el("h2", { text: fmt(d, { weekday: "long", day: "numeric", month: "long" }) }),
+      el("span", { class: "sub", text: `${byDay[d].filter(r => r.correct).length} of ${byDay[d].length} correct` })),
+    el("div", { class: "grid" }, ...byDay[d].map(r => el("div", { class: "card market" },
+      el("div", { class: "market-meta" }, el("span", { text: "Full time" }),
+        el("span", { class: `pill${r.correct ? " up" : ""}`, text: r.correct ? "Correct" : "Missed" })),
+      el("div", { class: "market-title" }, `${r.home} `, el("span", { class: "score", text: `${r.hg}–${r.ag}` }), ` ${r.away}`),
+      outcomes(r, r.result)))),
+  ]));
+}
+
+/* ---------- Teams ---------- */
+let selectedTeam = null;
+const ordinal = n => n + ({ 1: "st", 2: "nd", 3: "rd" }[n % 100 > 10 && n % 100 < 14 ? 0 : n % 10] || "th");
+
+function renderRankings() {
+  const ranked = [...DATA.table].sort((a, b) => b.Elo - a.Elo);
+  document.getElementById("rank-list").replaceChildren(...ranked.map((t, i) => {
+    const [cls, txt] = changeText(change(t.Team));
+    const spark = ratingSeries(t.Team).filter(p => p.season === currentSeason).map(p => p.elo);
+    const row = el("div", { class: `rank-row${t.Team === selectedTeam ? " selected" : ""}` },
+      el("span", { class: "pos num", text: i + 1 }),
+      el("span", { class: "team", text: t.Team }),
+      sparkline(spark, { up: "var(--up)", down: "var(--down)", flat: "var(--muted)" }[cls]),
+      el("span", { class: "rating num", text: t.Elo }),
+      el("span", { class: `change num ${cls}`, text: txt }));
     row.addEventListener("click", () => selectTeam(t.Team));
     return row;
   }));
 }
 
+function renderDetail() {
+  const t = DATA.table.find(r => r.Team === selectedTeam);
+  const box = document.getElementById("team-detail");
+  const [cls, txt] = changeText(change(t.Team));
+  const chart = el("div", { style: "margin-top:14px" });
+  box.replaceChildren(
+    el("div", { class: "detail-head" },
+      el("div", {},
+        el("div", { class: "detail-name", text: t.Team }),
+        el("div", { class: "detail-value num" }, String(t.Elo), el("span", { class: `change ${cls}`, text: `${txt} last 5 games` }))),
+      el("span", { class: "pill", text: `${ordinal(t.Pos)} in table` })),
+    chart,
+    el("div", { class: "facts" },
+      el("div", {}, "Points", el("b", { class: "num", text: `${t.Pts} from ${t.P}` })),
+      el("div", {}, "Goal difference", el("b", { class: "num", text: t.GD > 0 ? `+${t.GD}` : String(t.GD) })),
+      el("div", {}, "xG for per game", el("b", { class: "num", text: t.xgf != null ? t.xgf.toFixed(2) : "–" })),
+      el("div", {}, "xG against per game", el("b", { class: "num", text: t.xga != null ? t.xga.toFixed(2) : "–" }))));
+  lineChart(chart, [{ name: t.Team, color: "var(--accent)", pts: ratingSeries(t.Team) }], { height: 220 });
+}
+
+function renderXg() {
+  const box = document.getElementById("xg-chart");
+  const W = box.clientWidth;
+  if (!W) return;
+  const teams = DATA.table.filter(t => t.xgf != null && t.xga != null);
+  const H = Math.min(400, Math.max(300, W * 0.6)), m = { t: 10, r: 12, b: 36, l: 40 };
+  const xs = teams.map(t => t.xgf), ys = teams.map(t => t.xga);
+  const xlo = Math.min(...xs) - 0.1, xhi = Math.max(...xs) + 0.1, ylo = Math.min(...ys) - 0.1, yhi = Math.max(...ys) + 0.1;
+  const x = v => m.l + (v - xlo) / (xhi - xlo) * (W - m.l - m.r);
+  const y = v => m.t + (v - ylo) / (yhi - ylo) * (H - m.t - m.b);
+  const svg = el("svg:svg", { width: W, height: H });
+  for (const v of niceTicks(xlo, xhi, 6)) svg.append(
+    el("svg:line", { class: "gridline", x1: x(v), x2: x(v), y1: m.t, y2: H - m.b }),
+    el("svg:text", { x: x(v), y: H - m.b + 16, "text-anchor": "middle", text: v.toFixed(1) }));
+  for (const v of niceTicks(ylo, yhi, 5)) svg.append(
+    el("svg:line", { class: "gridline", x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }),
+    el("svg:text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end", text: v.toFixed(1) }));
+  svg.append(
+    el("svg:text", { x: (m.l + W - m.r) / 2, y: H - 2, "text-anchor": "middle", text: "Chances created" }),
+    el("svg:text", { x: -(m.t + H - m.b) / 2, y: 10, transform: "rotate(-90)", "text-anchor": "middle", text: "Chances allowed" }),
+    el("svg:text", { x: W - m.r - 4, y: m.t + 12, "text-anchor": "end", text: "Best" }));
+
+  const pts = teams.map(t => ({ t, x: x(t.xgf), y: y(t.xga) }));
+  for (const p of pts) {
+    const on = p.t.Team === selectedTeam;
+    const dot = el("svg:circle", { cx: p.x, cy: p.y, r: on ? 6 : 4.5, fill: on ? "var(--accent)" : "var(--muted)",
+      "fill-opacity": on ? 1 : 0.55, stroke: "var(--card)", "stroke-width": 2, style: "cursor:pointer" });
+    hover(dot, () => `<b>${esc(p.t.Team)}</b><br><span>Created ${p.t.xgf.toFixed(2)} · Allowed ${p.t.xga.toFixed(2)}</span>`);
+    dot.addEventListener("click", () => selectTeam(p.t.Team));
+    svg.append(dot);
+  }
+  box.replaceChildren(svg);
+
+  // names: selected team first, then any others that fit without covering a dot or another name
+  const placed = [], overlap = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  const order = [...pts].sort((a, b) => (b.t.Team === selectedTeam) - (a.t.Team === selectedTeam));
+  for (const p of order) {
+    const on = p.t.Team === selectedTeam;
+    const label = el("svg:text", { class: "label", text: p.t.Team, style: on ? "fill:var(--ink);font-weight:600" : "" });
+    svg.append(label);
+    const w = label.getComputedTextLength(), h = 12;
+    const spots = [[p.x + 8, p.y - h / 2, "start"], [p.x - 8 - w, p.y - h / 2, "end"], [p.x - w / 2, p.y - 8 - h, "middle"], [p.x - w / 2, p.y + 8, "middle"]];
+    const spot = spots.find(([sx, sy]) => {
+      const b = { x: sx, y: sy, w, h };
+      return sx >= m.l && sx + w <= W && sy >= 0 && sy + h <= H - m.b
+        && !pts.some(q => q !== p && overlap(b, { x: q.x - 5, y: q.y - 5, w: 10, h: 10 }))
+        && !placed.some(o => overlap(b, o));
+    });
+    if (!spot) { label.remove(); continue; }
+    const [sx, sy, anchor] = spot;
+    placed.push({ x: sx, y: sy, w, h });
+    label.setAttribute("x", anchor === "start" ? sx : anchor === "end" ? sx + w : sx + w / 2);
+    label.setAttribute("y", sy + h - 2);
+    label.setAttribute("text-anchor", anchor);
+  }
+}
+
 function selectTeam(team) {
   selectedTeam = team;
-  document.getElementById("team-select").value = team;
-  renderElo(); renderXg(); renderTable();
+  renderRankings(); renderDetail(); renderXg();
 }
 
-function renderTeams() {
-  const select = document.getElementById("team-select");
-  select.replaceChildren(...DATA.table.map(t => el("option", { value: t.Team, text: t.Team })));
-  select.addEventListener("change", () => selectTeam(select.value));
-  selectTeam(DATA.table[0].Team);
-}
-
-/* ---------- Page ---------- */
+/* ---------- page ---------- */
 const views = ["fixtures", "record", "teams"];
 function show(view) {
   for (const v of views) document.getElementById(v).hidden = v !== view;
   for (const b of document.querySelectorAll("nav button")) b.setAttribute("aria-selected", b.dataset.view === view);
-  if (view === "teams") { renderElo(); renderXg(); }
-  if (view === "record") renderWeekly();
-  fitLabels();
-  history.replaceState(null, "", `#${view}`);
+  if (view === "fixtures") renderFeatured();
+  if (view === "teams") { renderDetail(); renderXg(); }
+  scrollTo(0, 0);
 }
 document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => show(b.dataset.view)));
 
+document.getElementById("updated").textContent = `Results to ${fmt(DATA.updated, { day: "numeric", month: "short" })}`;
 document.getElementById("footer").textContent =
-  `Model: logistic regression on Elo ratings, xG and bookmaker odds, retrained every week. Results up to ${shortDate(DATA.updated)}.`;
+  "Forecasts from a logistic regression on Elo ratings, expected goals and bookmaker odds, retrained every week. Not betting advice.";
 
+selectedTeam = [...DATA.table].sort((a, b) => b.Elo - a.Elo)[0].Team;
 renderFixtures();
 renderRecord();
-renderTeams();
-show(views.includes(location.hash.slice(1)) ? location.hash.slice(1) : "fixtures");
+renderRankings();
+show("fixtures");
 
 let resizeTimer;
-window.addEventListener("resize", () => {
+addEventListener("resize", () => {
   clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => { renderElo(); renderXg(); renderWeekly(); fitLabels(); }, 150);
+  resizeTimer = setTimeout(() => { renderFeatured(); renderDetail(); renderXg(); }, 150);
 });
 </script>
 </body>
