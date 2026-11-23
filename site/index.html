@@ -67,6 +67,8 @@
   .band { background: var(--band); color: var(--band-ink); }
   .band-inner { max-width: 1180px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 32px; min-height: 64px; }
   .name { font: 800 22px/1 var(--cond); text-transform: uppercase; letter-spacing: 0.01em; white-space: nowrap; display: flex; align-items: center; gap: 12px; }
+  a.name { color: inherit; text-decoration: none; }
+  a.name:focus-visible { outline-color: #fff; outline-offset: 4px; }
   .logo { display: block; width: auto; height: 36px; flex: none; }
   .tabs { display: flex; gap: 2px; align-self: stretch; }
   .tab {
@@ -276,7 +278,7 @@
 <body>
 <header class="band">
   <div class="band-inner">
-    <div class="name"><img class="logo" src="logo-white.png" alt="" width="29" height="36">Premier League Match Prediction</div>
+    <a class="name" href="./" id="home-link"><img class="logo" src="logo-white.png" alt="" width="29" height="36">Premier League Match Prediction</a>
     <nav class="tabs" role="tablist" aria-label="Sections">
       <button class="tab" role="tab" id="tab-coupon" aria-controls="coupon" aria-selected="true">Matches</button>
       <button class="tab" role="tab" id="tab-results" aria-controls="results" aria-selected="false" tabindex="-1">Results</button>
@@ -904,6 +906,7 @@ function show(id, focus = false) {
   history.replaceState(null, "", id === "coupon" ? location.pathname : "#/" + id);
   scrollTo(0, 0);
 }
+document.getElementById("home-link").addEventListener("click", e => { e.preventDefault(); show("coupon"); });
 tabs.forEach((t, i) => {
   t.addEventListener("click", () => show(t.getAttribute("aria-controls")));
   t.addEventListener("keydown", e => {
