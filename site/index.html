@@ -88,6 +88,8 @@
   h2 { font: 700 22px/1.1 var(--cond); text-transform: uppercase; color: var(--red); margin: 0; }
   h3 { font: 700 17px/1.2 var(--text); margin: 0; }
   .lede { color: var(--ink-2); margin: 0; }
+  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 6px 0 0; vertical-align: -1px; }
+  .sw ~ .sw { margin-left: 10px; }
   .legend { display: flex; align-items: center; gap: 10px; margin: 0; font: 600 20px/1.2 var(--cond); color: var(--ink); letter-spacing: 0.01em; }
   .ring-key { width: 26px; height: 18px; border: 2px solid var(--red); border-radius: 50%; flex: none; }
 
@@ -382,7 +384,7 @@
       <div style="padding:14px 20px 18px">
         <h3 class="chart-title">Picks correct</h3><div id="model-chart-acc"></div>
         <h3 class="chart-title">Log loss, lower is better</h3><div id="model-chart-ll"></div>
-        <p class="chart-note">Red: this model. Black: bookmakers. Each test retrained the model week by week on earlier matches only.</p>
+        <p class="chart-note"><span class="sw" style="background:var(--red)"></span>This model <span class="sw" style="background:var(--ink)"></span>Bookmakers<br>Each test retrained the model week by week on earlier matches only.</p>
       </div>
     </aside>
     </div>
@@ -534,7 +536,6 @@ function renderStub() {
   const latestWeek = weekOf(lastDates[lastDates.length - 1]);
   const last = rec.filter(r => weekOf(r.date) === latestWeek);
   const hits = last.filter(r => r.correct).length;
-  const all = rec.filter(r => r.correct).length;
   stub.append(
     el("div", { class: "stub-head" },
       el("h2", { text: "Last round" }),
@@ -545,10 +546,9 @@ function renderStub() {
     el("div", { class: "stub-section" },
       el("h3", { text: "How often the prediction is right" }),
       el("div", { class: "bench" },
-        ...benchRow("This season", all / rec.length, false),
-        ...benchRow("Past seasons", 0.535, false),
+        ...benchRow("Our predictions", 0.535, false),
         ...benchRow("Bookmakers", 0.536, true)),
-      el("p", { text: `This season: ${all} of ${rec.length} matches so far. Past seasons: tested on 1,240 matches. Bookmakers: how often their favourite won.` })));
+      el("p", { text: "Tested on 1,240 past matches. Bookmakers: how often their favourite won the same matches." })));
 }
 
 function benchRow(label, v, dim) {
