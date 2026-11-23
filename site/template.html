@@ -203,6 +203,7 @@
   svg .axis { font: 800 24px var(--cond); text-transform: uppercase; letter-spacing: 0.04em; fill: var(--ink); }
   svg .axis-sub { font: 500 14px var(--text); fill: var(--ink-2); }
   svg .lbl { fill: var(--ink-2); font-weight: 600; }
+  svg .key { font-size: 12px; fill: var(--muted); }
   svg .tag { font: 600 11px var(--cond); text-transform: uppercase; letter-spacing: 0.08em; fill: var(--red); opacity: 0.85; }
   svg .grid { stroke: var(--rule-soft); }
   svg .base { stroke: var(--muted); stroke-dasharray: 3 4; }
@@ -524,7 +525,7 @@ function renderMatchDetail(td, m) {
   lineChart(chart, [
     { name: m.home, color: pick === "H" ? "var(--red)" : "var(--ink)", pts: series(m.home, true), tag: pick === "H" ? "Predicted to win" : null },
     { name: m.away, color: pick === "A" ? "var(--red)" : "var(--ink)", pts: series(m.away, true), dash: "5 4", tag: pick === "A" ? "Predicted to win" : null },
-  ], 180, { names: true });
+  ], 180, { names: true, key: true });
 }
 
 function renderStub() {
@@ -663,14 +664,16 @@ function niceTicks(lo, hi, count) {
   return out;
 }
 
-function lineChart(box, lines, H = 220, { names = false } = {}) {
+function lineChart(box, lines, H = 220, { names = false, key = false } = {}) {
   const W = box.clientWidth;
   if (!W) return;
   lines = lines.filter(l => l.pts.length);
   if (!lines.length) return;
   const endText = (l, p) => names ? `${l.name} ${Math.round(p.elo)}` : String(Math.round(p.elo));
   const longest = Math.max(...lines.map(l => endText(l, l.pts[l.pts.length - 1]).length));
-  const m = { t: 10, r: 16 + longest * 7.5, b: 26, l: 46 };
+  const keyH = key ? 22 : 0;  // room under the month labels for the home/away key
+  H += keyH;
+  const m = { t: 10, r: 16 + longest * 7.5, b: 26 + keyH, l: 46 };
   const all = lines.flatMap(l => l.pts);
   const t0 = Math.min(...all.map(p => p.t)), t1 = Math.max(...all.map(p => p.t));
   const lo = Math.min(1500, ...all.map(p => p.elo)) - 12, hi = Math.max(1500, ...all.map(p => p.elo)) + 12;
@@ -680,9 +683,17 @@ function lineChart(box, lines, H = 220, { names = false } = {}) {
   for (const v of niceTicks(lo, hi, 4)) svg.append(el("svg:line", { class: "grid", x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }), el("svg:text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end", text: v }));
   const months = (t1 - t0) / 864e5 > 200 ? 2 : 1, s = new Date(t0);
   for (let d = new Date(Date.UTC(s.getUTCFullYear(), s.getUTCMonth() + 1, 1)); d.getTime() <= t1; d.setUTCMonth(d.getUTCMonth() + months)) {
-    svg.append(el("svg:text", { x: x(d.getTime()), y: H - 4, "text-anchor": "middle", text: d.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" }) }));
+    svg.append(el("svg:text", { x: x(d.getTime()), y: H - 4 - keyH, "text-anchor": "middle", text: d.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" }) }));
   }
   svg.append(el("svg:line", { class: "base", x1: m.l, x2: W - m.r, y1: y(1500), y2: y(1500) }));
+  if (key) {
+    const ky = H - 6, kx = m.l;
+    svg.append(
+      el("svg:line", { x1: kx, x2: kx + 18, y1: ky - 4, y2: ky - 4, stroke: "var(--muted)", "stroke-width": 2 }),
+      el("svg:text", { class: "key", x: kx + 24, y: ky, text: "Home" }),
+      el("svg:line", { x1: kx + 70, x2: kx + 88, y1: ky - 4, y2: ky - 4, stroke: "var(--muted)", "stroke-width": 2, "stroke-dasharray": "5 4" }),
+      el("svg:text", { class: "key", x: kx + 94, y: ky, text: "Away" }));
+  }
   for (const l of lines) {
     for (const season of new Set(l.pts.map(p => p.season))) {
       const seg = l.pts.filter(p => p.season === season);
