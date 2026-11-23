@@ -7,6 +7,7 @@
 <link rel="icon" href="logo.jpg">
 <meta name="description" content="Home, draw and away forecasts for every Premier League match, from a model retrained every week, with its track record.">
 <style>
+  @font-face { font-family: "Permanent Marker"; font-weight: 400; font-display: swap; src: url("fonts/permanent-marker-latin.woff2") format("woff2"); }
   @font-face { font-family: "Barlow Condensed"; font-weight: 500; font-display: swap; src: url("fonts/barlow-condensed-500-latin.woff2") format("woff2"); }
   @font-face { font-family: "Barlow Condensed"; font-weight: 600; font-display: swap; src: url("fonts/barlow-condensed-600-latin.woff2") format("woff2"); }
   @font-face { font-family: "Barlow Condensed"; font-weight: 700; font-display: swap; src: url("fonts/barlow-condensed-700-latin.woff2") format("woff2"); }
@@ -167,12 +168,12 @@
   }
   .team-pick .step:hover { background: var(--hover); border-color: var(--red); }
   .lede.strong { color: var(--ink); font-size: 18px; }
-  #teams .page-title { margin-bottom: 40px; }
+  #teams .page-title { margin-bottom: 60px; }
   .team-col { position: relative; }
-  .switch-hint { position: absolute; right: 38px; bottom: calc(100% - 18px); z-index: 2; margin: 0; display: flex; align-items: flex-start; gap: 2px; pointer-events: none; }
-  .switch-hint span { font: italic 700 17px/1 var(--cond); text-transform: uppercase; letter-spacing: 0.04em; color: var(--red); transform: rotate(-4deg); margin-top: 2px; }
-  .switch-hint svg { width: 64px; height: 45px; overflow: visible; }
-  .switch-hint .brush { fill: none; stroke: var(--red); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
+  .switch-hint { position: absolute; right: 22px; bottom: calc(100% - 20px); z-index: 2; margin: 0; display: flex; align-items: flex-start; gap: 0; pointer-events: none; }
+  .switch-hint span { font: 26px/1 "Permanent Marker", var(--cond); color: var(--red); transform: rotate(-4deg); margin-top: 4px; white-space: nowrap; }
+  .switch-hint svg { width: 100px; height: 70px; overflow: visible; }
+  .switch-hint .brush { fill: none; stroke: var(--red); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
   .switch-hint .brush.thin { stroke-width: 1.5; opacity: 0.55; }
   /* first visit: the label fades in, then the arrow paints itself on, then the button nudges */
   .switch-hint .brush { stroke-dasharray: 1; stroke-dashoffset: 0; }
@@ -286,7 +287,8 @@
     .hide-sm { display: none; }
     .team-figs { gap: 18px; }
     .team-pick { padding: 12px 14px; }
-    .switch-hint { right: 30px; }
+    .switch-hint { right: 16px; }
+    .switch-hint span { font-size: 22px; }
     .team-name { font-size: 26px; }
     #team-body { padding: 14px; }
   }
