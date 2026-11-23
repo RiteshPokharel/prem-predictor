@@ -44,6 +44,12 @@ def main() -> None:
     except Exception as e:
         print(f"Failed fixtures: {e}")
 
+    from download_xg import main as download_xg
+    try:
+        download_xg()
+    except Exception as e:
+        print(f"Failed xG: {e}")
+
 
 if __name__ == "__main__":
     main()
