@@ -3,316 +3,571 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Prem Predictor</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Premier League Match Prediction</title>
+<meta name="description" content="Home, draw and away forecasts for every Premier League match, from a model retrained every week, with its track record.">
 <style>
+  @font-face { font-family: "Barlow Condensed"; font-weight: 500; font-display: swap; src: url("fonts/barlow-condensed-500-latin.woff2") format("woff2"); }
+  @font-face { font-family: "Barlow Condensed"; font-weight: 600; font-display: swap; src: url("fonts/barlow-condensed-600-latin.woff2") format("woff2"); }
+  @font-face { font-family: "Barlow Condensed"; font-weight: 700; font-display: swap; src: url("fonts/barlow-condensed-700-latin.woff2") format("woff2"); }
+  @font-face { font-family: "Barlow Condensed"; font-weight: 800; font-display: swap; src: url("fonts/barlow-condensed-800-latin.woff2") format("woff2"); }
+  @font-face { font-family: "Public Sans"; font-weight: 400 700; font-display: swap; src: url("fonts/public-sans-latin.woff2") format("woff2"); }
+
   :root {
     color-scheme: light;
-    --page: #f6f7f9;
-    --card: #ffffff;
-    --ink: #0f1419;
-    --ink-2: #4b5563;
-    --muted: #8a919c;
-    --line: #e6e8ec;
-    --line-2: #f0f1f4;
-    --accent: #2a78d6;
-    --home: #2a78d6;
-    --away: #e34948;
-    --draw: #9a988f;
-    --home-tint: rgba(42, 120, 214, 0.10);
-    --away-tint: rgba(227, 73, 72, 0.10);
-    --draw-tint: rgba(137, 135, 129, 0.12);
-    --up: #00843d;
-    --down: #d03b3b;
-    --up-tint: rgba(0, 132, 61, 0.10);
-    --chip: #eef0f3;
-    --shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+    --board: #e9ebee;
+    --sheet: #ffffff;
+    --red: #c8102e;
+    --red-ink: #a50d26;
+    --rule: #ecbcc4;
+    --rule-soft: #f6dfe3;
+    --band: #c8102e;
+    --band-ink: #ffffff;
+    --band-ink-2: rgba(255, 255, 255, 0.78);
+    --ink: #1c1c1c;
+    --ink-2: #4a4a4a;
+    --muted: #6f6f6f;
+    --mark: #1c1c1c;
+    --mark-ink: #ffffff;
+    --good: #0f7a3d;
+    --hover: #fdf3f5;
+    --cond: "Barlow Condensed", "Arial Narrow", sans-serif;
+    --text: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       color-scheme: dark;
-      --page: #0d1015;
-      --card: #151a21;
-      --ink: #eef0f3;
-      --ink-2: #b4bac4;
-      --muted: #7d8591;
-      --line: #252b34;
-      --line-2: #1c2128;
-      --accent: #3987e5;
-      --home: #3987e5;
-      --away: #e66767;
-      --draw: #8a8880;
-      --home-tint: rgba(57, 135, 229, 0.16);
-      --away-tint: rgba(230, 103, 103, 0.15);
-      --draw-tint: rgba(160, 158, 150, 0.14);
-      --up: #2fbf71;
-      --down: #f07070;
-      --up-tint: rgba(47, 191, 113, 0.14);
-      --chip: #1f252d;
-      --shadow: none;
+      --board: #111214;
+      --sheet: #1b1c1f;
+      --red: #ef4f66;
+      --red-ink: #ff8094;
+      --rule: #4a2a31;
+      --rule-soft: #2c2023;
+      --band: #a50d26;
+      --ink: #efede8;
+      --ink-2: #c4c1ba;
+      --muted: #9a978f;
+      --mark: #efede8;
+      --mark-ink: #141414;
+      --good: #3fbf74;
+      --hover: #23191c;
     }
   }
 
   * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--page); color: var(--ink);
-    font: 14px/1.45 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
-    -webkit-font-smoothing: antialiased; font-feature-settings: "cv11", "ss01";
-  }
-  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
-  .num { font-variant-numeric: tabular-nums; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--board); color: var(--ink); font: 15px/1.5 var(--text); -webkit-font-smoothing: antialiased; }
+  ::selection { background: var(--red); color: #fff; }
+  :focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+  a { color: var(--red-ink); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  .fig { font-family: var(--cond); font-variant-numeric: tabular-nums; }
   [hidden] { display: none !important; }
 
-  /* top bar */
-  header { position: sticky; top: 0; z-index: 5; background: var(--card); border-bottom: 1px solid var(--line); }
-  header .wrap { display: flex; align-items: center; gap: 28px; height: 60px; }
-  .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; letter-spacing: -0.02em; white-space: nowrap; }
-  .logo-mark { width: 26px; height: 26px; border-radius: 7px; background: var(--ink); position: relative; }
-  .logo-mark::after { content: ""; position: absolute; inset: 7px; border-radius: 50%; border: 2px solid var(--card); }
-  nav { display: flex; gap: 6px; }
-  nav button {
-    font: inherit; font-weight: 500; color: var(--ink-2); background: none; border: 0; cursor: pointer;
-    padding: 7px 14px; border-radius: 999px;
+  /* band */
+  .band { background: var(--band); color: var(--band-ink); }
+  .band-inner { max-width: 1180px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 32px; min-height: 64px; }
+  .name { font: 800 22px/1 var(--cond); text-transform: uppercase; letter-spacing: 0.01em; white-space: nowrap; }
+  .tabs { display: flex; gap: 2px; align-self: stretch; }
+  .tab {
+    font: 600 15px var(--text); color: var(--band-ink-2); background: none; border: 0; cursor: pointer;
+    padding: 0 14px; border-bottom: 3px solid transparent; border-top: 3px solid transparent;
   }
-  nav button:hover { color: var(--ink); background: var(--chip); }
-  nav button[aria-selected="true"] { color: var(--card); background: var(--ink); }
-  .updated { margin-left: auto; color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .tab:hover { color: var(--band-ink); }
+  .tab[aria-selected="true"] { color: var(--band-ink); border-bottom-color: var(--band-ink); }
+  .tab:focus-visible { outline-color: #fff; outline-offset: -4px; }
+  .stamp { margin-left: auto; font-size: 13px; color: var(--band-ink-2); white-space: nowrap; }
 
-  main.wrap { padding-top: 28px; padding-bottom: 72px; }
-  .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
-  h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.025em; margin: 0; }
-  h2 { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
-  .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
-  .section-title { display: flex; align-items: baseline; justify-content: space-between; margin: 28px 0 12px; }
-  .section-title .sub { margin: 0; }
+  main { max-width: 1180px; margin: 0 auto; padding: 32px 24px 64px; }
+  .page-title { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin: 0 0 20px; }
+  h1 { font: 800 44px/1 var(--cond); text-transform: uppercase; color: var(--red); margin: 0; letter-spacing: -0.005em; }
+  h2 { font: 700 22px/1.1 var(--cond); text-transform: uppercase; color: var(--red); margin: 0; }
+  h3 { font: 700 17px/1.2 var(--text); margin: 0; }
+  .lede { color: var(--ink-2); margin: 0; }
 
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
-  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  /* coupon sheet */
+  .sheet { background: var(--sheet); border: 2px solid var(--red); }
+  .sheet + .sheet { margin-top: 24px; }
+  .sheet-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 14px 20px; border-bottom: 2px solid var(--red); flex-wrap: wrap; }
+  .sheet-head p { margin: 0; color: var(--muted); font-size: 13px; }
+  .sheet-foot { padding: 12px 20px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 13px; }
+  .sheet-foot p { margin: 0; }
 
-  /* market card */
-  .market { padding: 14px 16px 12px; display: flex; flex-direction: column; gap: 10px; transition: border-color .15s; }
-  .market:hover { border-color: var(--muted); }
-  .market-meta { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 12px; font-weight: 500; }
-  .market-title { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
-  .score { font-variant-numeric: tabular-nums; }
-  .outcomes { display: flex; flex-direction: column; gap: 6px; }
-  .outcome {
-    position: relative; display: flex; align-items: center; justify-content: space-between;
-    height: 36px; padding: 0 12px; border-radius: 9px; background: var(--line-2); overflow: hidden;
-  }
-  .outcome .fill { position: absolute; inset: 0 auto 0 0; border-radius: 9px; }
-  .outcome.h .fill { background: var(--home-tint); }
-  .outcome.d .fill { background: var(--draw-tint); }
-  .outcome.a .fill { background: var(--away-tint); }
-  .outcome .name { position: relative; display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-weight: 500; }
-  .outcome .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
-  .outcome.h .dot { background: var(--home); }
-  .outcome.d .dot { background: var(--draw); }
-  .outcome.a .dot { background: var(--away); }
-  .outcome .pct { position: relative; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink-2); }
-  .outcome.top .name, .outcome.top .pct { color: var(--ink); }
-  .outcome.top .pct { font-weight: 700; }
-  .outcome.actual { box-shadow: inset 0 0 0 1.5px var(--ink); }
-  .outcome .tag { font-size: 11px; font-weight: 600; color: var(--ink); background: var(--card); border-radius: 999px; padding: 1px 7px; margin-left: 2px; }
-  .market-foot { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 12px; }
-  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--chip); color: var(--ink-2); }
-  .pill.up { background: var(--up-tint); color: var(--up); }
+  .coupon { width: 100%; border-collapse: collapse; }
+  .coupon th { font: 700 14px var(--cond); text-transform: uppercase; color: var(--red); padding: 8px 10px; border-bottom: 1px solid var(--red); text-align: center; letter-spacing: 0.02em; }
+  .coupon th.left { text-align: left; }
+  .coupon th .key { display: block; font-size: 20px; line-height: 1; }
+  .coupon td { border-bottom: 1px solid var(--rule); padding: 0 10px; height: 54px; vertical-align: middle; }
+  .coupon tr:last-child td { border-bottom: 0; }
+  .coupon .day td { height: auto; padding: 14px 10px 6px; font: 700 13px var(--text); color: var(--muted); border-bottom: 1px solid var(--rule); background: var(--sheet); }
+  .coupon .no { width: 48px; text-align: center; font: 700 19px var(--cond); color: var(--red); border-right: 1px solid var(--rule); }
+  .coupon .ko { width: 92px; color: var(--muted); font-size: 13px; white-space: nowrap; }
+  .coupon .match { font-weight: 600; }
+  .coupon .match .v { color: var(--muted); font-weight: 400; padding: 0 6px; }
+  .coupon .cell { width: 84px; text-align: center; border-left: 1px solid var(--rule); padding: 0; position: relative; }
+  .coupon .cell .n { position: relative; z-index: 1; font: 600 22px/1 var(--cond); font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  .coupon .cell .ink { position: absolute; inset: 7px 9px; background: var(--mark); clip-path: inset(0 0 0 0); }
+  .coupon .cell.pick .n { color: var(--mark-ink); font-weight: 700; }
+  .coupon .cell .ring { position: absolute; inset: 4px 6px; border: 2px solid var(--red); border-radius: 50%; z-index: 2; pointer-events: none; }
+  .coupon .verdict { width: 92px; text-align: right; font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .verdict.hit { color: var(--good); }
+  .verdict.miss { color: var(--muted); }
+  .verdict svg { display: inline-block; vertical-align: -3px; margin-right: 4px; }
+  .coupon .score { width: 76px; text-align: center; font: 700 22px var(--cond); font-variant-numeric: tabular-nums; border-left: 1px solid var(--rule); }
+  .coupon tbody tr.fixture { cursor: pointer; }
+  .coupon tbody tr.fixture:hover td { background: var(--hover); }
+  .coupon tbody tr.fixture:focus-visible { outline-offset: -2px; }
+  .dagger { color: var(--red); font-weight: 700; margin-left: 2px; }
+  .ko-sm { display: none; }
+  .detail td { padding: 16px 20px 20px; background: var(--hover); height: auto; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 240px; gap: 28px; align-items: start; }
+  .facts { display: grid; grid-template-columns: 1fr auto auto; gap: 6px 16px; font-size: 13px; }
+  .facts .hd { color: var(--muted); font-weight: 600; }
+  .facts .fig { font-size: 18px; font-weight: 600; text-align: right; }
 
-  /* featured */
-  .featured { display: grid; grid-template-columns: 340px 1fr; gap: 28px; padding: 22px 24px; margin-bottom: 14px; }
-  .featured .market-title { font-size: 20px; letter-spacing: -0.02em; }
-  .featured .outcome { height: 42px; }
-  .featured-chart { min-width: 0; }
-  .chart-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 6px; }
-  .legend { display: flex; gap: 14px; font-size: 12px; color: var(--ink-2); }
-  .legend span { display: inline-flex; align-items: center; gap: 6px; }
-  .legend i { width: 10px; height: 2px; border-radius: 2px; display: inline-block; }
-
-  /* stats strip */
-  .stats { display: grid; grid-template-columns: repeat(3, 1fr); }
-  .stat { padding: 18px 22px; }
-  .stat + .stat { border-left: 1px solid var(--line); }
-  .stat .label { color: var(--muted); font-size: 12px; font-weight: 500; }
-  .stat .value { font-size: 30px; font-weight: 700; letter-spacing: -0.03em; margin-top: 4px; }
-  .stat .hint { color: var(--muted); font-size: 12px; }
+  /* layout */
+  .split { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+  .split.wide { grid-template-columns: minmax(0, 1fr) 430px; }
+  .split > * { min-width: 0; }
+  .stub { background: var(--sheet); border: 2px solid var(--red); }
+  .stub-head { padding: 14px 18px 12px; border-bottom: 2px solid var(--red); }
+  .stub-score { display: flex; align-items: baseline; gap: 10px; margin-top: 6px; }
+  .stub-score .fig { font-size: 64px; font-weight: 800; line-height: 0.9; color: var(--ink); }
+  .stub-score span { color: var(--ink-2); font-size: 14px; }
+  .stub-list { list-style: none; margin: 0; padding: 0; }
+  .stub-list li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 18px; border-bottom: 1px solid var(--rule); font-size: 14px; }
+  .stub-list li .fig { font-size: 18px; font-weight: 700; }
+  .stub-section { padding: 14px 18px 16px; }
+  .stub-section h3 { font: 700 14px var(--cond); text-transform: uppercase; color: var(--red); margin-bottom: 10px; letter-spacing: 0.02em; }
+  .bench { display: grid; grid-template-columns: 96px 1fr 46px; gap: 8px 10px; align-items: center; font-size: 13px; }
+  .bench .track { height: 10px; background: var(--rule-soft); position: relative; }
+  .bench .fill { position: absolute; inset: 0 auto 0 0; background: var(--red); }
+  .bench .fill.dim { background: var(--muted); }
+  .bench .fig { font-size: 17px; font-weight: 700; text-align: right; }
+  .stub-section p { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
 
   /* teams */
-  .teams-layout { display: grid; grid-template-columns: 1fr 380px; gap: 14px; align-items: start; }
-  .detail { padding: 20px 22px; }
-  .detail-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-  .detail-name { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
-  .detail-value { font-size: 30px; font-weight: 700; letter-spacing: -0.03em; margin-top: 2px; display: flex; align-items: baseline; gap: 10px; }
-  .change { font-size: 13px; font-weight: 600; }
-  .change.up { color: var(--up); }
-  .change.down { color: var(--down); }
-  .change.flat { color: var(--muted); }
-  .facts { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); margin-top: 14px; padding-top: 14px; }
-  .facts div { color: var(--muted); font-size: 12px; }
-  .facts b { display: block; color: var(--ink); font-size: 15px; font-weight: 600; margin-top: 2px; }
-  .rankings { padding: 8px 0; }
-  .rankings h2 { padding: 10px 18px 8px; }
-  .rank-row {
-    display: grid; grid-template-columns: 22px 1fr 54px 44px 50px; align-items: center; gap: 8px;
-    padding: 8px 18px; cursor: pointer;
-  }
-  .rank-row:hover, .rank-row.selected { background: var(--line-2); }
-  .rank-row .pos { color: var(--muted); font-size: 12px; }
-  .rank-row .team { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .rank-row .rating { text-align: right; font-weight: 600; }
-  .rank-row .change { text-align: right; font-size: 12px; }
-  .scatter-card { padding: 20px 22px; margin-top: 14px; }
+  .team-panel { padding: 18px 20px 20px; }
+  .team-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+  .team-name { font: 800 34px/1 var(--cond); text-transform: uppercase; }
+  .team-sub { color: var(--ink-2); font-size: 14px; margin-top: 4px; }
+  .team-figs { display: flex; gap: 28px; }
+  .team-figs div { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .team-figs .fig { display: block; font-size: 30px; font-weight: 700; color: var(--ink); line-height: 1.1; }
+  .up { color: var(--good) !important; }
+  .down { color: var(--red) !important; }
+  .table td { height: 42px; padding: 0 8px; white-space: nowrap; }
+  .table th { padding: 8px; }
+  .table td, .table th { text-align: right; }
+  .table td.t, .table th.t { text-align: left; }
+  .table tbody tr { cursor: pointer; }
+  .table tbody tr:hover td { background: var(--hover); }
+  .table tbody tr.on td { background: var(--rule-soft); font-weight: 700; }
+  .table td.pos { width: 44px; text-align: center; color: var(--red); font: 700 17px var(--cond); border-right: 1px solid var(--rule); }
+  .table td .fig { font-size: 18px; }
 
+  /* charts */
   svg { display: block; overflow: visible; }
-  svg text { font: 11px Inter, system-ui, sans-serif; fill: var(--muted); }
-  svg .label { fill: var(--ink-2); font-weight: 500; }
-  svg .gridline { stroke: var(--line); stroke-width: 1; }
-  svg .ref { stroke: var(--muted); stroke-opacity: .6; stroke-width: 1; stroke-dasharray: 3 4; }
+  svg text { font: 12px var(--text); fill: var(--muted); }
+  svg .lbl { fill: var(--ink-2); font-weight: 600; }
+  svg .grid { stroke: var(--rule-soft); }
+  svg .base { stroke: var(--muted); stroke-dasharray: 3 4; }
+  #tip { position: fixed; z-index: 10; pointer-events: none; opacity: 0; background: var(--ink); color: var(--sheet); padding: 6px 10px; font-size: 13px; white-space: nowrap; transition: opacity .1s; }
+  #tip .fig { font-size: 16px; font-weight: 700; }
 
-  #tip {
-    position: fixed; pointer-events: none; z-index: 20; opacity: 0; transition: opacity .1s;
-    background: var(--ink); color: var(--card); border-radius: 8px; padding: 6px 10px; font-size: 12px; white-space: nowrap;
-  }
-  #tip span { opacity: .7; }
+  /* how it works */
+  .read { max-width: 68ch; }
+  .read p, .read li { color: var(--ink-2); }
+  .read h2 { margin: 36px 0 10px; }
+  .read h2:first-child { margin-top: 0; }
+  .read .coupon { margin: 14px 0 6px; }
+  .read .coupon td { height: 44px; }
+  .read .coupon td.fig { text-align: right; font-size: 19px; font-weight: 600; }
+  .read .coupon tr.best td { font-weight: 700; color: var(--ink); background: var(--rule-soft); }
+  .read ul { padding-left: 18px; }
 
-  footer.wrap { color: var(--muted); font-size: 12px; padding-bottom: 40px; }
+  footer { max-width: 1180px; margin: 0 auto; padding: 0 24px 40px; color: var(--muted); font-size: 13px; }
 
-  @media (max-width: 980px) {
-    .grid { grid-template-columns: repeat(2, 1fr); }
-    .featured { grid-template-columns: 1fr; }
-    .teams-layout { grid-template-columns: 1fr; }
+  @media (max-width: 960px) {
+    .split, .split.wide { grid-template-columns: 1fr; }
+    .detail-grid { grid-template-columns: 1fr; }
   }
   @media (max-width: 640px) {
-    .wrap { padding: 0 16px; }
-    header .wrap { height: auto; flex-wrap: wrap; gap: 10px 16px; padding-top: 12px; padding-bottom: 10px; }
-    nav { order: 3; width: 100%; margin-left: -4px; }
-    .grid { grid-template-columns: 1fr; }
-    .featured { padding: 18px; gap: 18px; }
-    .stat { padding: 14px; }
-    .stat .value { font-size: 22px; }
-    .facts { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .band-inner { flex-wrap: wrap; gap: 0 16px; padding: 12px 16px 0; }
+    .name { font-size: 19px; width: 100%; }
+    .stamp { display: none; }
+    .tabs { margin-left: -14px; overflow-x: auto; min-height: 44px; }
+    main { padding: 20px 12px 48px; }
+    h1 { font-size: 34px; }
+    .sheet-head { padding: 12px 14px; }
+    .coupon .no { width: 34px; font-size: 17px; }
+    .coupon .ko { display: none; }
+    .coupon .cell { width: 58px; }
+    .coupon .cell .n { font-size: 19px; }
+    .coupon td { padding: 0 6px; }
+    .coupon .match .v { padding: 0 4px; }
+    .coupon td.match { padding-top: 8px; padding-bottom: 8px; line-height: 1.3; }
+    .ko-sm { display: block; color: var(--muted); font-size: 12px; font-weight: 400; margin-top: 2px; }
+    .coupon .verdict { display: none; }
+    .coupon .score { width: 52px; font-size: 19px; }
+    .hide-sm { display: none; }
+    .team-figs { gap: 18px; }
   }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
 <body>
-<header>
-  <div class="wrap">
-    <div class="logo"><span class="logo-mark"></span>Prem Predictor</div>
-    <nav>
-      <button data-view="fixtures" aria-selected="true">Matches</button>
-      <button data-view="record" aria-selected="false">Results</button>
-      <button data-view="teams" aria-selected="false">Teams</button>
+<header class="band">
+  <div class="band-inner">
+    <div class="name">Premier League Match Prediction</div>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab" role="tab" id="tab-coupon" aria-controls="coupon" aria-selected="true">Coupon</button>
+      <button class="tab" role="tab" id="tab-results" aria-controls="results" aria-selected="false" tabindex="-1">Results</button>
+      <button class="tab" role="tab" id="tab-teams" aria-controls="teams" aria-selected="false" tabindex="-1">Teams</button>
+      <button class="tab" role="tab" id="tab-how" aria-controls="how" aria-selected="false" tabindex="-1">How it works</button>
     </nav>
-    <div class="updated" id="updated"></div>
+    <div class="stamp" id="stamp"></div>
   </div>
 </header>
 
-<main class="wrap">
-  <section id="fixtures">
-    <div class="page-head">
-      <div>
-        <h1 id="fixtures-title">Upcoming matches</h1>
-        <div class="sub" id="fixtures-sub"></div>
+<main>
+  <section id="coupon" role="tabpanel" aria-labelledby="tab-coupon">
+    <div class="split">
+      <div class="sheet">
+        <div class="sheet-head"><h1 id="coupon-title">This week</h1><p id="coupon-sub"></p></div>
+        <table class="coupon" id="coupon-table">
+          <thead><tr>
+            <th scope="col" aria-label="Number"></th><th scope="col" class="left hide-sm">Kick-off</th><th scope="col" class="left">Match</th>
+            <th scope="col"><span class="key">1</span>Home</th><th scope="col"><span class="key">X</span>Draw</th><th scope="col"><span class="key">2</span>Away</th>
+          </tr></thead>
+          <tbody id="coupon-body"></tbody>
+        </table>
+        <div class="sheet-foot"><p id="coupon-foot"></p></div>
       </div>
+      <aside class="stub" id="stub" aria-label="Last coupon"></aside>
     </div>
-    <div class="card featured" id="featured"></div>
-    <div class="grid" id="market-grid"></div>
-    <p class="sub" id="fixtures-note" style="margin-top:14px"></p>
   </section>
 
-  <section id="record" hidden>
-    <div class="page-head">
-      <div>
-        <h1>Results</h1>
-        <div class="sub">Every forecast, checked against the final score.</div>
-      </div>
-    </div>
-    <div class="card stats" id="record-stats"></div>
-    <div id="record-days"></div>
+  <section id="results" role="tabpanel" aria-labelledby="tab-results" hidden>
+    <div class="page-title"><h1>Results</h1><p class="lede" id="results-sub"></p></div>
+    <div id="results-weekly"></div>
+    <div id="results-sheets"></div>
   </section>
 
-  <section id="teams" hidden>
-    <div class="page-head">
+  <section id="teams" role="tabpanel" aria-labelledby="tab-teams" hidden>
+    <div class="page-title"><h1>Teams</h1><p class="lede">Strength ratings and chance quality behind every forecast. Pick a team in the table.</p></div>
+    <div class="split wide">
       <div>
-        <h1>Teams</h1>
-        <div class="sub">Strength ratings and chance quality behind every forecast.</div>
-      </div>
-    </div>
-    <div class="teams-layout">
-      <div>
-        <div class="card detail" id="team-detail"></div>
-        <div class="card scatter-card">
-          <h2>Attack vs defence</h2>
-          <div class="sub" style="margin-bottom:10px">Expected goals per game, last 20 league matches</div>
-          <div id="xg-chart"></div>
+        <div class="sheet team-panel" id="team-panel"></div>
+        <div class="sheet">
+          <div class="sheet-head"><h2>Attack and defence</h2><p>Expected goals per game, last 20 league matches</p></div>
+          <div style="padding:12px 20px 20px"><div id="xg-chart"></div></div>
         </div>
       </div>
-      <div class="card rankings">
-        <h2>Power rankings</h2>
-        <div id="rank-list"></div>
+      <div class="sheet">
+        <div class="sheet-head"><h2>Table</h2><p>Rating change over the last 5 games</p></div>
+        <table class="coupon table" aria-label="League table">
+          <thead><tr><th scope="col" aria-label="Position"></th><th scope="col" class="t">Team</th><th scope="col">P</th><th scope="col">GD</th><th scope="col">Pts</th><th scope="col">Rating</th><th scope="col">+/−</th></tr></thead>
+          <tbody id="table-body"></tbody>
+        </table>
       </div>
+    </div>
+  </section>
+
+  <section id="how" role="tabpanel" aria-labelledby="tab-how" hidden>
+    <div class="page-title"><h1>How it works</h1></div>
+    <div class="read">
+      <h2>What the model looks at</h2>
+      <p>Every forecast comes from a logistic regression that gives each match three chances: home win, draw and away win. It uses only what is known before kick-off:</p>
+      <ul>
+        <li><strong>Elo ratings:</strong> a running strength score for every team, updated after each result.</li>
+        <li><strong>Expected goals (xG):</strong> how many chances each team has been creating and allowing over its last 20 league games, from Opta data published by Fantasy Premier League.</li>
+        <li><strong>Bookmaker odds:</strong> turned into probabilities, when they have been published. Until then the forecast uses ratings and xG alone.</li>
+      </ul>
+      <p>The model is retrained every week on every match played since 2017, and this page rebuilds itself every Tuesday and Friday morning.</p>
+
+      <h2>How it was tested</h2>
+      <p>To get an honest score, the model was replayed week by week over 1,240 matches from August 2023 to November 2026. Before each week it was retrained on earlier matches only, then asked to predict that week.</p>
+      <table class="coupon" aria-label="Test results">
+        <thead><tr><th scope="col" class="left">Model</th><th scope="col">Correct</th><th scope="col">Log loss</th></tr></thead>
+        <tbody>
+          <tr><td>Always pick the home team</td><td class="fig">43.1%</td><td class="fig">1.074</td></tr>
+          <tr><td>Elo ratings only</td><td class="fig">52.2%</td><td class="fig">0.985</td></tr>
+          <tr><td>Elo and recent form</td><td class="fig">52.4%</td><td class="fig">0.981</td></tr>
+          <tr><td>Elo, form and odds</td><td class="fig">52.5%</td><td class="fig">0.972</td></tr>
+          <tr class="best"><td>Elo, xG and odds (this model)</td><td class="fig">53.5%</td><td class="fig">0.971</td></tr>
+          <tr><td>Bookmakers</td><td class="fig">53.6%</td><td class="fig">0.969</td></tr>
+        </tbody>
+      </table>
+      <p>Log loss scores the percentages themselves, lower is better. The model matches the bookmakers on picks and sits just behind them on the percentages.</p>
+
+      <h2>What didn't help</h2>
+      <ul>
+        <li>Random forests, gradient boosting, nearest neighbours and a small neural network all scored worse than logistic regression.</li>
+        <li>Days of rest and fixture congestion, including Champions League, Europa League and cup games, changed nothing beyond noise.</li>
+        <li>Extra signals for draws (goal expectations, how evenly matched the teams are) did not improve the draw percentages.</li>
+      </ul>
+
+      <h2>Where the data comes from</h2>
+      <ul>
+        <li>Results, match stats and odds: <a href="https://www.football-data.co.uk/englandm.php">football-data.co.uk</a></li>
+        <li>Newest results and fixtures: ESPN</li>
+        <li>Expected goals and gameweeks: <a href="https://fantasy.premierleague.com">Fantasy Premier League</a></li>
+      </ul>
     </div>
   </section>
 </main>
 
-<footer class="wrap" id="footer"></footer>
+<footer id="footer">Forecasts are probabilities, not certainties, and not betting advice.</footer>
 <div id="tip" role="tooltip"></div>
 
 <script>const DATA = {"updated":"2026-11-22","fixtures":[{"kickoff":"2026-11-23T20:00:00+00:00","round":11,"home":"Brentford","away":"Everton","pH":0.4298,"pD":0.2765,"pA":0.2937,"odds":true},{"kickoff":"2026-11-27T20:00:00+00:00","round":12,"home":"Nott'm Forest","away":"Chelsea","pH":0.4188,"pD":0.2659,"pA":0.3153,"odds":false},{"kickoff":"2026-11-28T15:00:00+00:00","round":12,"home":"Leeds","away":"Coventry","pH":0.5623,"pD":0.2491,"pA":0.1886,"odds":false},{"kickoff":"2026-11-28T15:00:00+00:00","round":12,"home":"Man United","away":"Brentford","pH":0.4192,"pD":0.2499,"pA":0.3309,"odds":false},{"kickoff":"2026-11-28T17:30:00+00:00","round":12,"home":"Ipswich","away":"Aston Villa","pH":0.1857,"pD":0.2308,"pA":0.5835,"odds":false},{"kickoff":"2026-11-29T12:00:00+00:00","round":12,"home":"Everton","away":"Liverpool","pH":0.2978,"pD":0.2607,"pA":0.4415,"odds":false},{"kickoff":"2026-11-29T14:05:00+00:00","round":12,"home":"Brighton","away":"Newcastle","pH":0.6129,"pD":0.2208,"pA":0.1663,"odds":false},{"kickoff":"2026-11-29T14:05:00+00:00","round":12,"home":"Fulham","away":"Bournemouth","pH":0.3595,"pD":0.2649,"pA":0.3756,"odds":false},{"kickoff":"2026-11-29T14:05:00+00:00","round":12,"home":"Sunderland","away":"Tottenham","pH":0.3615,"pD":0.2733,"pA":0.3653,"odds":false},{"kickoff":"2026-11-29T14:05:00+00:00","round":12,"home":"Crystal Palace","away":"Hull","pH":0.2764,"pD":0.2551,"pA":0.4684,"odds":false},{"kickoff":"2026-11-29T16:30:00+00:00","round":12,"home":"Arsenal","away":"Man City","pH":0.5999,"pD":0.2327,"pA":0.1674,"odds":false}],"record":[{"date":"2026-11-21","home":"Man City","away":"Fulham","hg":1,"ag":1,"pH":0.72,"pD":0.17,"pA":0.11,"result":"Draw","pick":"Home","correct":false},{"date":"2026-11-21","home":"Aston Villa","away":"Sunderland","hg":0,"ag":0,"pH":0.51,"pD":0.26,"pA":0.24,"result":"Draw","pick":"Home","correct":false},{"date":"2026-11-21","home":"Bournemouth","away":"Nott'm Forest","hg":2,"ag":0,"pH":0.52,"pD":0.27,"pA":0.22,"result":"Home","pick":"Home","correct":true},{"date":"2026-11-21","home":"Chelsea","away":"Leeds","hg":1,"ag":4,"pH":0.48,"pD":0.26,"pA":0.25,"result":"Away","pick":"Home","correct":false},{"date":"2026-11-21","home":"Coventry","away":"Crystal Palace","hg":3,"ag":2,"pH":0.38,"pD":0.28,"pA":0.34,"result":"Home","pick":"Home","correct":true},{"date":"2026-11-21","home":"Tottenham","away":"Ipswich","hg":2,"ag":0,"pH":0.66,"pD":0.2,"pA":0.14,"result":"Home","pick":"Home","correct":true},{"date":"2026-11-21","home":"Newcastle","away":"Arsenal","hg":2,"ag":2,"pH":0.14,"pD":0.19,"pA":0.66,"result":"Draw","pick":"Away","correct":false},{"date":"2026-11-22","home":"Hull","away":"Brighton","hg":2,"ag":0,"pH":0.15,"pD":0.2,"pA":0.65,"result":"Home","pick":"Away","correct":false},{"date":"2026-11-22","home":"Liverpool","away":"Man United","hg":4,"ag":0,"pH":0.59,"pD":0.23,"pA":0.18,"result":"Home","pick":"Home","correct":true}],"table":[{"Team":"Arsenal","Pos":1,"P":11,"W":9,"D":1,"L":1,"GF":17,"GA":7,"GD":10,"Pts":28,"Elo":1668,"xgf":1.7,"xga":0.83},{"Team":"Brighton","Pos":2,"P":11,"W":7,"D":1,"L":3,"GF":26,"GA":9,"GD":17,"Pts":22,"Elo":1563,"xgf":1.86,"xga":1.26},{"Team":"Man City","Pos":3,"P":11,"W":7,"D":1,"L":3,"GF":22,"GA":14,"GD":8,"Pts":22,"Elo":1631,"xgf":2.02,"xga":1.28},{"Team":"Liverpool","Pos":4,"P":11,"W":6,"D":3,"L":2,"GF":18,"GA":10,"GD":8,"Pts":21,"Elo":1584,"xgf":1.51,"xga":1.44},{"Team":"Bournemouth","Pos":5,"P":11,"W":5,"D":3,"L":3,"GF":18,"GA":14,"GD":4,"Pts":18,"Elo":1545,"xgf":1.79,"xga":1.31},{"Team":"Leeds","Pos":6,"P":11,"W":4,"D":5,"L":2,"GF":14,"GA":9,"GD":5,"Pts":17,"Elo":1502,"xgf":1.37,"xga":1.29},{"Team":"Everton","Pos":7,"P":10,"W":4,"D":4,"L":2,"GF":12,"GA":10,"GD":2,"Pts":16,"Elo":1493,"xgf":1.35,"xga":1.5},{"Team":"Chelsea","Pos":8,"P":11,"W":5,"D":1,"L":5,"GF":20,"GA":20,"GD":0,"Pts":16,"Elo":1498,"xgf":1.24,"xga":1.52},{"Team":"Tottenham","Pos":9,"P":11,"W":4,"D":3,"L":4,"GF":12,"GA":11,"GD":1,"Pts":15,"Elo":1462,"xgf":1.2,"xga":1.09},{"Team":"Brentford","Pos":10,"P":10,"W":3,"D":5,"L":2,"GF":16,"GA":11,"GD":5,"Pts":14,"Elo":1517,"xgf":1.49,"xga":1.55},{"Team":"Hull","Pos":11,"P":11,"W":3,"D":5,"L":3,"GF":13,"GA":11,"GD":2,"Pts":14,"Elo":1477,"xgf":0.95,"xga":1.46},{"Team":"Aston Villa","Pos":12,"P":11,"W":3,"D":5,"L":3,"GF":14,"GA":17,"GD":-3,"Pts":14,"Elo":1521,"xgf":1.43,"xga":1.6},{"Team":"Newcastle","Pos":13,"P":11,"W":3,"D":4,"L":4,"GF":15,"GA":18,"GD":-3,"Pts":13,"Elo":1490,"xgf":1.3,"xga":1.7},{"Team":"Coventry","Pos":14,"P":11,"W":4,"D":0,"L":7,"GF":13,"GA":21,"GD":-8,"Pts":12,"Elo":1411,"xgf":0.96,"xga":1.52},{"Team":"Fulham","Pos":15,"P":11,"W":2,"D":5,"L":4,"GF":11,"GA":13,"GD":-2,"Pts":11,"Elo":1481,"xgf":1.42,"xga":1.36},{"Team":"Ipswich","Pos":16,"P":11,"W":3,"D":2,"L":6,"GF":15,"GA":22,"GD":-7,"Pts":11,"Elo":1376,"xgf":1.09,"xga":1.9},{"Team":"Nott'm Forest","Pos":17,"P":11,"W":2,"D":3,"L":6,"GF":9,"GA":15,"GD":-6,"Pts":9,"Elo":1471,"xgf":1.5,"xga":1.3},{"Team":"Sunderland","Pos":18,"P":11,"W":2,"D":3,"L":6,"GF":8,"GA":17,"GD":-9,"Pts":9,"Elo":1446,"xgf":1.44,"xga":1.5},{"Team":"Man United","Pos":19,"P":11,"W":1,"D":5,"L":5,"GF":14,"GA":23,"GD":-9,"Pts":8,"Elo":1498,"xgf":1.73,"xga":1.63},{"Team":"Crystal Palace","Pos":20,"P":11,"W":2,"D":1,"L":8,"GF":12,"GA":27,"GD":-15,"Pts":7,"Elo":1418,"xgf":1.42,"xga":1.86}],"ratings":{"Arsenal":[["2025-08-17",2526,1633.6],["2025-08-23",2526,1639.9],["2025-08-31",2526,1634.4],["2025-09-13",2526,1641.0],["2025-09-21",2526,1638.7],["2025-09-28",2526,1645.0],["2025-10-04",2526,1648.7],["2025-10-18",2526,1653.3],["2025-10-26",2526,1657.0],["2025-11-01",2526,1662.5],["2025-11-08",2526,1659.2],["2025-11-23",2526,1665.2],["2025-11-30",2526,1664.5],["2025-12-03",2526,1669.4],["2025-12-06",2526,1661.6],["2025-12-13",2526,1663.1],["2025-12-20",2526,1667.8],["2025-12-27",2526,1671.0],["2025-12-30",2526,1679.6],["2026-01-03",2526,1683.9],["2026-01-08",2526,1680.2],["2026-01-17",2526,1675.8],["2026-01-25",2526,1664.8],["2026-01-31",2526,1674.1],["2026-02-07",2526,1679.5],["2026-02-12",2526,1676.9],["2026-02-18",2526,1670.5],["2026-02-22",2526,1678.7],["2026-03-01",2526,1682.5],["2026-03-04",2526,1687.4],["2026-03-14",2526,1691.6],["2026-04-11",2526,1680.5],["2026-04-19",2526,1674.5],["2026-04-25",2526,1677.4],["2026-05-02",2526,1682.9],["2026-05-10",2526,1686.5],["2026-05-18",2526,1687.7],["2026-05-24",2526,1691.8],["2026-08-21",2627,1651.3],["2026-08-31",2627,1656.8],["2026-09-06",2627,1660.2],["2026-09-12",2627,1667.4],["2026-09-19",2627,1650.4],["2026-10-10",2627,1653.5],["2026-10-18",2627,1658.2],["2026-10-24",2627,1662.6],["2026-11-01",2627,1668.9],["2026-11-07",2627,1671.5],["2026-11-21",2627,1668.0]],"Aston Villa":[["2025-08-16",2526,1538.1],["2025-08-23",2526,1531.5],["2025-08-31",2526,1514.8],["2025-09-13",2526,1516.0],["2025-09-21",2526,1516.4],["2025-09-28",2526,1524.6],["2025-10-05",2526,1528.0],["2025-10-19",2526,1535.6],["2025-10-26",2526,1543.3],["2025-11-01",2526,1536.7],["2025-11-09",2526,1549.6],["2025-11-23",2526,1554.8],["2025-11-30",2526,1557.5],["2025-12-03",2526,1565.3],["2025-12-06",2526,1573.1],["2025-12-14",2526,1578.4],["2025-12-21",2526,1582.7],["2025-12-27",2526,1590.6],["2025-12-30",2526,1582.0],["2026-01-03",2526,1587.6],["2026-01-07",2526,1586.9],["2026-01-18",2526,1576.8],["2026-01-25",2526,1588.8],["2026-02-01",2526,1579.2],["2026-02-07",2526,1578.8],["2026-02-11",2526,1583.2],["2026-02-21",2526,1578.2],["2026-02-27",2526,1562.5],["2026-03-04",2526,1546.6],["2026-03-15",2526,1537.1],["2026-03-22",2526,1543.3],["2026-04-12",2526,1542.9],["2026-04-19",2526,1547.5],["2026-04-25",2526,1540.5],["2026-05-03",2526,1530.4],["2026-05-10",2526,1526.6],["2026-05-15",2526,1538.0],["2026-05-24",2526,1548.6],["2026-08-23",2627,1517.8],["2026-08-31",2627,1512.3],["2026-09-05",2627,1513.2],["2026-09-12",2627,1504.6],["2026-09-19",2627,1511.2],["2026-10-10",2627,1509.8],["2026-10-17",2627,1517.6],["2026-10-24",2627,1526.3],["2026-10-31",2627,1523.2],["2026-11-08",2627,1524.5],["2026-11-21",2627,1520.6]],"Bournemouth":[["2025-08-15",2526,1499.9],["2025-08-23",2526,1504.4],["2025-08-30",2526,1512.1],["2025-09-13",2526,1517.9],["2025-09-21",2526,1517.0],["2025-09-27",2526,1516.2],["2025-10-03",2526,1524.2],["2025-10-18",2526,1526.3],["2025-10-26",2526,1533.4],["2025-11-02",2526,1527.1],["2025-11-09",2526,1514.1],["2025-11-22",2526,1510.1],["2025-11-29",2526,1503.7],["2025-12-02",2526,1495.1],["2025-12-06",2526,1495.4],["2025-12-15",2526,1497.3],["2025-12-20",2526,1492.3],["2025-12-27",2526,1481.0],["2025-12-30",2526,1485.0],["2026-01-03",2526,1480.6],["2026-01-07",2526,1486.5],["2026-01-19",2526,1489.2],["2026-01-24",2526,1497.2],["2026-01-31",2526,1505.9],["2026-02-07",2526,1506.3],["2026-02-10",2526,1514.3],["2026-02-21",2526,1513.4],["2026-02-28",2526,1510.3],["2026-03-03",2526,1508.9],["2026-03-14",2526,1506.3],["2026-03-20",2526,1505.7],["2026-04-11",2526,1516.8],["2026-04-18",2526,1524.9],["2026-04-22",2526,1521.7],["2026-05-03",2526,1532.0],["2026-05-09",2526,1539.2],["2026-05-19",2526,1541.6],["2026-05-24",2526,1542.3],["2026-08-23",2627,1523.3],["2026-08-29",2627,1520.6],["2026-09-05",2627,1522.1],["2026-09-12",2627,1520.1],["2026-09-20",2627,1512.7],["2026-10-10",2627,1498.9],["2026-10-18",2627,1506.7],["2026-10-25",2627,1524.1],["2026-10-31",2627,1532.1],["2026-11-08",2627,1537.4],["2026-11-21",2627,1544.7]],"Brentford":[["2025-08-17",2526,1494.4],["2025-08-23",2526,1501.0],["2025-08-30",2526,1494.4],["2025-09-13",2526,1494.9],["2025-09-20",2526,1485.3],["2025-09-27",2526,1493.8],["2025-10-05",2526,1488.3],["2025-10-20",2526,1499.1],["2025-10-25",2526,1507.5],["2025-11-01",2526,1499.3],["2025-11-09",2526,1509.5],["2025-11-22",2526,1504.0],["2025-11-29",2526,1509.8],["2025-12-03",2526,1504.8],["2025-12-06",2526,1495.1],["2025-12-14",2526,1491.2],["2025-12-20",2526,1499.7],["2025-12-27",2526,1510.9],["2026-01-01",2526,1508.5],["2026-01-04",2526,1521.0],["2026-01-07",2526,1531.5],["2026-01-17",2526,1523.2],["2026-01-25",2526,1508.5],["2026-02-01",2526,1518.1],["2026-02-07",2526,1526.4],["2026-02-12",2526,1529.0],["2026-02-21",2526,1515.2],["2026-02-28",2526,1520.4],["2026-03-03",2526,1521.9],["2026-03-16",2526,1516.7],["2026-03-21",2526,1516.5],["2026-04-11",2526,1514.5],["2026-04-18",2526,1512.0],["2026-04-27",2526,1506.9],["2026-05-02",2526,1516.2],["2026-05-09",2526,1510.0],["2026-05-17",2526,1507.3],["2026-05-24",2526,1511.1],["2026-08-22",2627,1511.7],["2026-08-30",2627,1512.5],["2026-09-05",2627,1509.7],["2026-09-12",2627,1511.7],["2026-09-18",2627,1523.3],["2026-10-10",2627,1524.7],["2026-10-17",2627,1517.2],["2026-10-25",2627,1517.6],["2026-10-31",2627,1525.3],["2026-11-08",2627,1517.4]],"Brighton":[["2025-08-16",2526,1512.4],["2025-08-24",2526,1502.3],["2025-08-31",2526,1510.4],["2025-09-13",2526,1504.7],["2025-09-20",2526,1502.7],["2025-09-27",2526,1517.3],["2025-10-05",2526,1515.9],["2025-10-18",2526,1522.3],["2025-10-25",2526,1511.8],["2025-11-01",2526,1519.9],["2025-11-09",2526,1522.3],["2025-11-22",2526,1527.8],["2025-11-30",2526,1539.1],["2025-12-03",2526,1531.3],["2025-12-07",2526,1526.9],["2025-12-13",2526,1519.9],["2025-12-20",2526,1517.4],["2025-12-27",2526,1514.2],["2025-12-30",2526,1513.0],["2026-01-03",2526,1518.1],["2026-01-07",2526,1523.4],["2026-01-19",2526,1520.7],["2026-01-24",2526,1514.4],["2026-01-31",2526,1511.9],["2026-02-08",2526,1503.3],["2026-02-11",2526,1499.0],["2026-02-21",2526,1512.7],["2026-03-01",2526,1517.4],["2026-03-04",2526,1512.5],["2026-03-14",2526,1519.8],["2026-03-21",2526,1527.1],["2026-04-11",2526,1534.7],["2026-04-18",2526,1533.1],["2026-04-21",2526,1544.9],["2026-05-02",2526,1534.5],["2026-05-09",2526,1540.2],["2026-05-17",2526,1533.3],["2026-05-24",2526,1518.1],["2026-08-23",2627,1522.3],["2026-08-30",2627,1516.4],["2026-09-05",2627,1513.7],["2026-09-13",2627,1529.2],["2026-09-19",2627,1546.1],["2026-10-10",2627,1556.4],["2026-10-18",2627,1566.9],["2026-10-25",2627,1557.7],["2026-10-31",2627,1567.6],["2026-11-08",2627,1575.5],["2026-11-22",2627,1562.9]],"Burnley":[["2025-08-16",2526,1389.5],["2025-08-23",2526,1401.1],["2025-08-30",2526,1396.5],["2025-09-14",2526,1393.2],["2025-09-20",2526,1394.1],["2025-09-27",2526,1388.9],["2025-10-05",2526,1385.6],["2025-10-18",2526,1395.8],["2025-10-26",2526,1404.0],["2025-11-01",2526,1398.6],["2025-11-08",2526,1393.2],["2025-11-22",2526,1385.8],["2025-11-29",2526,1380.0],["2025-12-03",2526,1375.0],["2025-12-06",2526,1372.1],["2025-12-13",2526,1365.8],["2025-12-20",2526,1370.9],["2025-12-27",2526,1372.4],["2025-12-30",2526,1364.5],["2026-01-03",2526,1359.4],["2026-01-07",2526,1361.6],["2026-01-17",2526,1368.7],["2026-01-24",2526,1369.9],["2026-02-02",2526,1362.3],["2026-02-07",2526,1351.0],["2026-02-11",2526,1361.6],["2026-02-21",2526,1368.2],["2026-02-28",2526,1363.0],["2026-03-03",2526,1357.5],["2026-03-14",2526,1360.0],["2026-03-21",2526,1354.4],["2026-04-11",2526,1346.9],["2026-04-19",2526,1339.7],["2026-04-22",2526,1337.3],["2026-05-01",2526,1331.9],["2026-05-10",2526,1335.7],["2026-05-18",2526,1334.5],["2026-05-24",2526,1333.5]],"Chelsea":[["2025-08-17",2526,1551.3],["2025-08-22",2526,1564.8],["2025-08-30",2526,1571.5],["2025-09-13",2526,1571.0],["2025-09-20",2526,1563.0],["2025-09-27",2526,1548.4],["2025-10-04",2526,1556.3],["2025-10-18",2526,1569.0],["2025-10-25",2526,1559.2],["2025-11-01",2526,1566.3],["2025-11-08",2526,1571.8],["2025-11-22",2526,1579.2],["2025-11-30",2526,1579.9],["2025-12-03",2526,1565.1],["2025-12-06",2526,1564.8],["2025-12-13",2526,1572.0],["2025-12-20",2526,1572.8],["2025-12-27",2526,1564.9],["2025-12-30",2526,1560.9],["2026-01-04",2526,1565.5],["2026-01-07",2526,1558.2],["2026-01-17",2526,1566.5],["2026-01-25",2526,1577.2],["2026-01-31",2526,1580.2],["2026-02-07",2526,1586.4],["2026-02-10",2526,1581.2],["2026-02-21",2526,1574.5],["2026-03-01",2526,1570.7],["2026-03-04",2526,1586.6],["2026-03-14",2526,1577.2],["2026-03-21",2526,1562.4],["2026-04-12",2526,1549.8],["2026-04-18",2526,1541.4],["2026-04-21",2526,1529.6],["2026-05-04",2526,1515.8],["2026-05-09",2526,1519.8],["2026-05-19",2526,1524.0],["2026-05-24",2526,1517.2],["2026-08-24",2627,1514.9],["2026-08-30",2627,1520.8],["2026-09-06",2627,1517.4],["2026-09-12",2627,1514.7],["2026-09-18",2627,1503.1],["2026-10-10",2627,1516.8],["2026-10-17",2627,1529.0],["2026-10-24",2627,1513.4],["2026-10-31",2627,1522.7],["2026-11-08",2627,1515.3],["2026-11-21",2627,1497.9]],"Coventry":[["2026-08-21",2627,1415.5],["2026-08-29",2627,1408.6],["2026-09-05",2627,1406.5],["2026-09-13",2627,1391.0],["2026-09-19",2627,1401.0],["2026-10-12",2627,1416.6],["2026-10-19",2627,1407.8],["2026-10-24",2627,1400.8],["2026-10-31",2627,1411.3],["2026-11-06",2627,1404.4],["2026-11-21",2627,1410.5]],"Crystal Palace":[["2025-08-17",2526,1522.5],["2025-08-24",2526,1520.5],["2025-08-31",2526,1537.1],["2025-09-13",2526,1533.5],["2025-09-20",2526,1539.5],["2025-09-27",2526,1547.7],["2025-10-05",2526,1540.8],["2025-10-18",2526,1538.6],["2025-10-26",2526,1534.9],["2025-11-01",2526,1543.2],["2025-11-09",2526,1540.9],["2025-11-22",2526,1548.7],["2025-11-30",2526,1539.4],["2025-12-03",2526,1544.4],["2025-12-07",2526,1551.1],["2025-12-14",2526,1538.9],["2025-12-20",2526,1522.5],["2025-12-28",2526,1513.6],["2026-01-01",2526,1511.1],["2026-01-04",2526,1502.8],["2026-01-07",2526,1503.5],["2026-01-17",2526,1497.4],["2026-01-25",2526,1486.7],["2026-02-01",2526,1488.1],["2026-02-08",2526,1496.6],["2026-02-11",2526,1486.0],["2026-02-22",2526,1489.6],["2026-03-01",2526,1484.7],["2026-03-05",2526,1496.4],["2026-03-15",2526,1493.3],["2026-04-12",2526,1499.6],["2026-04-20",2526,1496.2],["2026-04-25",2526,1490.2],["2026-05-03",2526,1479.9],["2026-05-10",2526,1478.7],["2026-05-13",2526,1473.6],["2026-05-17",2526,1476.4],["2026-05-24",2526,1472.3],["2026-08-22",2627,1462.3],["2026-08-28",2627,1452.7],["2026-09-05",2627,1461.2],["2026-09-12",2627,1451.5],["2026-09-20",2627,1454.3],["2026-10-11",2627,1464.5],["2026-10-18",2627,1453.9],["2026-10-25",2627,1441.9],["2026-10-31",2627,1433.1],["2026-11-08",2627,1424.3],["2026-11-21",2627,1418.2]],"Everton":[["2025-08-18",2526,1480.3],["2025-08-24",2526,1490.4],["2025-08-30",2526,1497.3],["2025-09-13",2526,1496.1],["2025-09-20",2526,1493.1],["2025-09-29",2526,1489.5],["2025-10-05",2526,1496.4],["2025-10-18",2526,1491.0],["2025-10-26",2526,1474.7],["2025-11-03",2526,1476.7],["2025-11-08",2526,1485.6],["2025-11-24",2526,1493.9],["2025-11-29",2526,1479.1],["2025-12-02",2526,1487.7],["2025-12-06",2526,1498.7],["2025-12-13",2526,1491.5],["2025-12-20",2526,1486.7],["2025-12-27",2526,1485.1],["2025-12-30",2526,1497.4],["2026-01-04",2526,1484.9],["2026-01-07",2526,1480.0],["2026-01-18",2526,1490.0],["2026-01-26",2526,1487.1],["2026-01-31",2526,1489.5],["2026-02-07",2526,1497.7],["2026-02-10",2526,1489.7],["2026-02-23",2526,1482.4],["2026-02-28",2526,1491.3],["2026-03-03",2526,1496.8],["2026-03-14",2526,1492.6],["2026-03-21",2526,1507.5],["2026-04-11",2526,1509.4],["2026-04-19",2526,1503.0],["2026-04-25",2526,1496.1],["2026-05-04",2526,1499.4],["2026-05-10",2526,1500.6],["2026-05-17",2526,1486.3],["2026-05-24",2526,1479.5],["2026-08-22",2627,1486.0],["2026-08-29",2627,1488.7],["2026-09-06",2627,1488.7],["2026-09-12",2627,1488.7],["2026-09-19",2627,1492.5],["2026-10-11",2627,1493.8],["2026-10-17",2627,1481.7],["2026-10-24",2627,1477.2],["2026-11-02",2627,1485.6],["2026-11-06",2627,1492.6]],"Fulham":[["2025-08-16",2526,1482.5],["2025-08-24",2526,1480.1],["2025-08-30",2526,1473.5],["2025-09-13",2526,1478.2],["2025-09-20",2526,1487.8],["2025-09-28",2526,1479.6],["2025-10-03",2526,1471.6],["2025-10-18",2526,1466.9],["2025-10-25",2526,1462.6],["2025-11-01",2526,1471.5],["2025-11-08",2526,1462.6],["2025-11-22",2526,1468.8],["2025-11-29",2526,1477.3],["2025-12-02",2526,1472.4],["2025-12-07",2526,1465.7],["2025-12-13",2526,1472.0],["2025-12-22",2526,1477.8],["2025-12-27",2526,1484.7],["2026-01-01",2526,1487.2],["2026-01-04",2526,1489.0],["2026-01-07",2526,1496.2],["2026-01-17",2526,1489.3],["2026-01-24",2526,1495.7],["2026-02-01",2526,1490.4],["2026-02-07",2526,1482.3],["2026-02-11",2526,1476.5],["2026-02-22",2526,1489.3],["2026-03-01",2526,1494.3],["2026-03-04",2526,1484.8],["2026-03-15",2526,1485.6],["2026-03-21",2526,1491.3],["2026-04-11",2526,1485.0],["2026-04-18",2526,1487.5],["2026-04-25",2526,1494.4],["2026-05-02",2526,1489.0],["2026-05-09",2526,1481.7],["2026-05-17",2526,1479.8],["2026-05-24",2526,1490.2],["2026-08-24",2627,1477.9],["2026-08-30",2627,1471.9],["2026-09-05",2627,1463.5],["2026-09-12",2627,1467.8],["2026-09-20",2627,1468.2],["2026-10-10",2627,1460.6],["2026-10-17",2627,1466.7],["2026-10-24",2627,1473.7],["2026-10-31",2627,1476.8],["2026-11-07",2627,1475.3],["2026-11-21",2627,1480.9]],"Hull":[["2026-08-22",2627,1475.2],["2026-08-29",2627,1482.1],["2026-09-05",2627,1481.2],["2026-09-12",2627,1483.9],["2026-09-19",2627,1478.5],["2026-10-11",2627,1477.2],["2026-10-17",2627,1471.1],["2026-10-25",2627,1470.7],["2026-10-31",2627,1466.7],["2026-11-07",2627,1464.2],["2026-11-22",2627,1476.8]],"Ipswich":[["2026-08-22",2627,1385.1],["2026-08-30",2627,1378.9],["2026-09-04",2627,1371.5],["2026-09-12",2627,1381.3],["2026-09-19",2627,1377.4],["2026-10-10",2627,1385.0],["2026-10-17",2627,1383.3],["2026-10-23",2627,1384.1],["2026-10-31",2627,1388.1],["2026-11-08",2627,1382.8],["2026-11-21",2627,1375.8]],"Leeds":[["2025-08-18",2526,1423.8],["2025-08-23",2526,1417.5],["2025-08-30",2526,1419.5],["2025-09-13",2526,1414.8],["2025-09-20",2526,1427.7],["2025-09-27",2526,1428.5],["2025-10-04",2526,1421.6],["2025-10-18",2526,1411.4],["2025-10-24",2526,1417.1],["2025-11-01",2526,1409.1],["2025-11-09",2526,1401.2],["2025-11-23",2526,1395.9],["2025-11-29",2526,1393.9],["2025-12-03",2526,1408.7],["2025-12-06",2526,1412.4],["2025-12-14",2526,1416.3],["2025-12-20",2526,1432.6],["2025-12-28",2526,1436.0],["2026-01-01",2526,1441.9],["2026-01-04",2526,1441.8],["2026-01-07",2526,1437.9],["2026-01-17",2526,1444.8],["2026-01-26",2526,1447.7],["2026-01-31",2526,1438.5],["2026-02-06",2526,1448.6],["2026-02-10",2526,1453.8],["2026-02-21",2526,1458.7],["2026-02-28",2526,1454.5],["2026-03-03",2526,1446.6],["2026-03-15",2526,1449.7],["2026-03-21",2526,1449.9],["2026-04-13",2526,1459.7],["2026-04-18",2526,1468.2],["2026-04-22",2526,1471.4],["2026-05-01",2526,1476.9],["2026-05-11",2526,1477.5],["2026-05-17",2526,1484.5],["2026-05-24",2526,1470.8],["2026-08-22",2627,1478.7],["2026-08-30",2627,1477.9],["2026-09-05",2627,1480.6],["2026-09-14",2627,1493.4],["2026-09-20",2627,1490.5],["2026-10-10",2627,1487.5],["2026-10-18",2627,1487.1],["2026-10-25",2627,1487.7],["2026-10-31",2627,1479.7],["2026-11-07",2627,1485.0],["2026-11-21",2627,1502.4]],"Liverpool":[["2025-08-15",2526,1645.5],["2025-08-25",2526,1651.8],["2025-08-31",2526,1657.3],["2025-09-14",2526,1660.7],["2025-09-20",2526,1663.6],["2025-09-27",2526,1655.4],["2025-10-04",2526,1647.6],["2025-10-19",2526,1636.5],["2025-10-25",2526,1628.0],["2025-11-01",2526,1634.7],["2025-11-09",2526,1623.3],["2025-11-22",2526,1601.5],["2025-11-30",2526,1609.0],["2025-12-03",2526,1604.1],["2025-12-06",2526,1600.4],["2025-12-13",2526,1607.4],["2025-12-20",2526,1613.1],["2025-12-27",2526,1614.8],["2026-01-01",2526,1608.9],["2026-01-04",2526,1607.1],["2026-01-08",2526,1610.9],["2026-01-17",2526,1603.8],["2026-01-24",2526,1595.7],["2026-01-31",2526,1605.0],["2026-02-08",2526,1597.7],["2026-02-11",2526,1603.5],["2026-02-22",2526,1608.8],["2026-02-28",2526,1614.2],["2026-03-03",2526,1604.0],["2026-03-15",2526,1598.2],["2026-03-21",2526,1590.9],["2026-04-11",2526,1597.1],["2026-04-19",2526,1603.5],["2026-04-25",2526,1609.6],["2026-05-03",2526,1602.7],["2026-05-09",2526,1598.7],["2026-05-15",2526,1587.3],["2026-05-24",2526,1583.5],["2026-08-23",2627,1560.3],["2026-08-29",2627,1556.6],["2026-09-04",2627,1564.0],["2026-09-12",2627,1559.7],["2026-09-20",2627,1567.0],["2026-10-11",2627,1554.3],["2026-10-17",2627,1561.9],["2026-10-25",2627,1571.1],["2026-11-01",2627,1564.8],["2026-11-08",2627,1573.6],["2026-11-22",2627,1584.1]],"Man City":[["2025-08-16",2526,1638.6],["2025-08-23",2526,1621.2],["2025-08-31",2526,1613.1],["2025-09-14",2526,1619.5],["2025-09-21",2526,1621.8],["2025-09-27",2526,1627.0],["2025-10-05",2526,1632.5],["2025-10-18",2526,1637.9],["2025-10-26",2526,1630.1],["2025-11-02",2526,1636.4],["2025-11-09",2526,1647.9],["2025-11-22",2526,1639.7],["2025-11-29",2526,1641.7],["2025-12-02",2526,1646.6],["2025-12-06",2526,1652.8],["2025-12-14",2526,1665.0],["2025-12-20",2526,1669.2],["2025-12-27",2526,1673.5],["2026-01-01",2526,1670.1],["2026-01-04",2526,1665.5],["2026-01-07",2526,1660.2],["2026-01-17",2526,1645.9],["2026-01-24",2526,1648.7],["2026-02-01",2526,1645.4],["2026-02-08",2526,1652.7],["2026-02-11",2526,1658.5],["2026-02-21",2526,1662.0],["2026-02-28",2526,1666.2],["2026-03-04",2526,1659.5],["2026-03-14",2526,1655.0],["2026-04-12",2526,1667.5],["2026-04-19",2526,1673.5],["2026-04-22",2526,1675.9],["2026-05-04",2526,1672.6],["2026-05-09",2526,1678.8],["2026-05-13",2526,1683.9],["2026-05-19",2526,1681.5],["2026-05-24",2526,1670.9],["2026-08-23",2627,1634.0],["2026-08-28",2627,1643.6],["2026-09-05",2627,1645.7],["2026-09-13",2627,1651.9],["2026-09-20",2627,1656.2],["2026-10-11",2627,1668.9],["2026-10-17",2627,1670.6],["2026-10-24",2627,1661.9],["2026-10-31",2627,1651.9],["2026-11-07",2627,1637.0],["2026-11-21",2627,1631.4]],"Man United":[["2025-08-17",2526,1458.0],["2025-08-24",2526,1460.4],["2025-08-30",2526,1465.0],["2025-09-14",2526,1458.6],["2025-09-20",2526,1466.6],["2025-09-27",2526,1458.0],["2025-10-04",2526,1467.7],["2025-10-19",2526,1478.8],["2025-10-25",2526,1489.3],["2025-11-01",2526,1489.8],["2025-11-08",2526,1491.8],["2025-11-24",2526,1483.6],["2025-11-30",2526,1492.9],["2025-12-04",2526,1489.3],["2025-12-08",2526,1500.5],["2025-12-15",2526,1498.6],["2025-12-21",2526,1494.4],["2025-12-26",2526,1501.0],["2025-12-30",2526,1495.3],["2026-01-04",2526,1495.5],["2026-01-07",2526,1493.4],["2026-01-17",2526,1507.6],["2026-01-25",2526,1518.6],["2026-02-01",2526,1523.9],["2026-02-07",2526,1531.5],["2026-02-10",2526,1530.1],["2026-02-23",2526,1537.4],["2026-03-01",2526,1542.2],["2026-03-04",2526,1535.9],["2026-03-15",2526,1545.4],["2026-03-20",2526,1546.0],["2026-04-13",2526,1536.1],["2026-04-18",2526,1544.5],["2026-04-27",2526,1549.6],["2026-05-03",2526,1556.6],["2026-05-09",2526,1555.3],["2026-05-17",2526,1560.2],["2026-05-24",2526,1575.4],["2026-08-22",2627,1541.8],["2026-08-30",2627,1548.0],["2026-09-06",2627,1548.0],["2026-09-13",2627,1541.8],["2026-09-20",2627,1541.4],["2026-10-10",2627,1536.7],["2026-10-18",2627,1537.0],["2026-10-25",2627,1519.6],["2026-10-31",2627,1510.3],["2026-11-08",2627,1508.9],["2026-11-22",2627,1498.4]],"Newcastle":[["2025-08-16",2526,1552.6],["2025-08-25",2526,1546.3],["2025-08-30",2526,1544.4],["2025-09-13",2526,1548.0],["2025-09-21",2526,1548.8],["2025-09-28",2526,1542.5],["2025-10-05",2526,1549.6],["2025-10-18",2526,1543.2],["2025-10-25",2526,1547.6],["2025-11-02",2526,1534.0],["2025-11-09",2526,1523.8],["2025-11-22",2526,1532.0],["2025-11-29",2526,1546.8],["2025-12-02",2526,1543.3],["2025-12-06",2526,1546.3],["2025-12-14",2526,1539.3],["2025-12-20",2526,1538.5],["2025-12-26",2526,1531.9],["2025-12-30",2526,1539.8],["2026-01-04",2526,1548.1],["2026-01-07",2526,1551.9],["2026-01-18",2526,1548.4],["2026-01-25",2526,1536.4],["2026-01-31",2526,1527.1],["2026-02-07",2526,1518.8],["2026-02-10",2526,1525.9],["2026-02-21",2526,1522.5],["2026-02-28",2526,1513.6],["2026-03-04",2526,1519.9],["2026-03-14",2526,1529.3],["2026-03-22",2526,1520.0],["2026-04-12",2526,1513.7],["2026-04-18",2526,1505.6],["2026-04-25",2526,1502.7],["2026-05-02",2526,1513.1],["2026-05-10",2526,1514.8],["2026-05-17",2526,1521.6],["2026-05-24",2526,1511.2],["2026-08-23",2627,1502.3],["2026-08-29",2627,1513.1],["2026-09-05",2627,1511.6],["2026-09-14",2627,1498.9],["2026-09-19",2627,1504.4],["2026-10-12",2627,1488.8],["2026-10-17",2627,1481.1],["2026-10-25",2627,1493.1],["2026-11-02",2627,1484.7],["2026-11-07",2627,1486.2],["2026-11-21",2627,1489.6]],"Nott'm Forest":[["2025-08-17",2526,1509.7],["2025-08-24",2526,1511.7],["2025-08-31",2526,1492.3],["2025-09-13",2526,1485.7],["2025-09-20",2526,1484.7],["2025-09-27",2526,1476.3],["2025-10-05",2526,1469.1],["2025-10-18",2526,1456.4],["2025-10-26",2526,1449.3],["2025-11-01",2526,1448.7],["2025-11-09",2526,1456.6],["2025-11-22",2526,1478.4],["2025-11-30",2526,1467.1],["2025-12-03",2526,1473.3],["2025-12-06",2526,1462.4],["2025-12-14",2526,1475.2],["2025-12-22",2526,1469.4],["2025-12-27",2526,1465.1],["2025-12-30",2526,1452.8],["2026-01-03",2526,1447.3],["2026-01-06",2526,1454.5],["2026-01-17",2526,1458.9],["2026-01-25",2526,1473.7],["2026-02-01",2526,1472.3],["2026-02-06",2526,1462.2],["2026-02-11",2526,1457.6],["2026-02-22",2526,1452.3],["2026-03-01",2526,1447.7],["2026-03-04",2526,1454.3],["2026-03-15",2526,1453.5],["2026-03-22",2526,1469.2],["2026-04-12",2526,1469.6],["2026-04-19",2526,1476.8],["2026-04-24",2526,1497.7],["2026-05-04",2526,1511.5],["2026-05-10",2526,1509.9],["2026-05-17",2526,1505.0],["2026-05-24",2526,1504.3],["2026-08-22",2627,1488.2],["2026-08-29",2627,1491.9],["2026-09-05",2627,1488.4],["2026-09-12",2627,1497.0],["2026-09-19",2627,1486.9],["2026-10-11",2627,1476.8],["2026-10-18",2627,1472.1],["2026-10-23",2627,1471.3],["2026-10-31",2627,1463.6],["2026-11-07",2627,1478.4],["2026-11-21",2627,1471.1]],"Sunderland":[["2025-08-16",2526,1469.6],["2025-08-23",2526,1458.0],["2025-08-30",2526,1464.6],["2025-09-13",2526,1468.3],["2025-09-21",2526,1467.9],["2025-09-27",2526,1476.3],["2025-10-04",2526,1466.7],["2025-10-18",2526,1474.1],["2025-10-25",2526,1483.9],["2025-11-03",2526,1482.0],["2025-11-08",2526,1485.3],["2025-11-22",2526,1479.1],["2025-11-29",2526,1485.5],["2025-12-03",2526,1490.3],["2025-12-06",2526,1484.1],["2025-12-14",2526,1491.1],["2025-12-20",2526,1493.6],["2025-12-28",2526,1490.2],["2026-01-01",2526,1493.6],["2026-01-04",2526,1495.2],["2026-01-07",2526,1484.7],["2026-01-17",2526,1490.8],["2026-01-24",2526,1478.9],["2026-02-02",2526,1486.5],["2026-02-07",2526,1481.1],["2026-02-11",2526,1475.3],["2026-02-22",2526,1462.5],["2026-02-28",2526,1465.6],["2026-03-03",2526,1473.5],["2026-03-14",2526,1466.1],["2026-03-22",2526,1475.4],["2026-04-12",2526,1480.2],["2026-04-19",2526,1475.6],["2026-04-24",2526,1454.7],["2026-05-02",2526,1453.7],["2026-05-09",2526,1455.0],["2026-05-17",2526,1469.2],["2026-05-24",2526,1476.0],["2026-08-22",2627,1466.6],["2026-08-30",2627,1472.5],["2026-09-05",2627,1475.3],["2026-09-12",2627,1468.1],["2026-09-20",2627,1463.8],["2026-10-10",2627,1453.5],["2026-10-18",2627,1445.8],["2026-10-25",2627,1445.2],["2026-10-31",2627,1434.7],["2026-11-08",2627,1442.2],["2026-11-21",2627,1446.1]],"Tottenham":[["2025-08-16",2526,1468.2],["2025-08-23",2526,1485.6],["2025-08-30",2526,1477.8],["2025-09-13",2526,1492.7],["2025-09-20",2526,1494.7],["2025-09-27",2526,1490.6],["2025-10-04",2526,1497.5],["2025-10-19",2526,1490.0],["2025-10-26",2526,1506.3],["2025-11-01",2526,1499.2],["2025-11-08",2526,1497.2],["2025-11-23",2526,1491.2],["2025-11-29",2526,1482.6],["2025-12-02",2526,1486.1],["2025-12-06",2526,1495.8],["2025-12-14",2526,1483.0],["2025-12-20",2526,1477.3],["2025-12-28",2526,1486.3],["2026-01-01",2526,1488.7],["2026-01-04",2526,1487.1],["2026-01-07",2526,1481.2],["2026-01-17",2526,1471.5],["2026-01-24",2526,1470.2],["2026-02-01",2526,1473.5],["2026-02-07",2526,1465.9],["2026-02-10",2526,1458.8],["2026-02-22",2526,1450.7],["2026-03-01",2526,1445.7],["2026-03-05",2526,1434.0],["2026-03-15",2526,1439.8],["2026-03-22",2526,1424.1],["2026-04-12",2526,1419.3],["2026-04-18",2526,1420.9],["2026-04-25",2526,1428.0],["2026-05-03",2526,1438.1],["2026-05-11",2526,1437.5],["2026-05-19",2526,1433.3],["2026-05-24",2526,1440.0],["2026-08-22",2627,1436.1],["2026-08-29",2627,1425.3],["2026-09-05",2627,1428.8],["2026-09-12",2627,1428.8],["2026-09-19",2627,1422.2],["2026-10-10",2627,1426.9],["2026-10-19",2627,1435.7],["2026-10-24",2627,1451.2],["2026-10-31",2627,1460.1],["2026-11-07",2627,1454.7],["2026-11-21",2627,1461.7]],"West Ham":[["2025-08-16",2526,1436.3],["2025-08-22",2526,1422.8],["2025-08-31",2526,1442.2],["2025-09-13",2526,1427.4],["2025-09-20",2526,1421.4],["2025-09-29",2526,1425.0],["2025-10-04",2526,1421.3],["2025-10-20",2526,1410.6],["2025-10-24",2526,1404.9],["2025-11-02",2526,1418.4],["2025-11-08",2526,1423.8],["2025-11-22",2526,1427.8],["2025-11-30",2526,1420.3],["2025-12-04",2526,1424.0],["2025-12-07",2526,1428.4],["2025-12-14",2526,1423.2],["2025-12-20",2526,1419.0],["2025-12-27",2526,1412.1],["2025-12-30",2526,1413.3],["2026-01-03",2526,1399.1],["2026-01-06",2526,1391.9],["2026-01-17",2526,1401.7],["2026-01-24",2526,1413.6],["2026-01-31",2526,1410.6],["2026-02-07",2526,1421.9],["2026-02-10",2526,1423.3],["2026-02-21",2526,1424.2],["2026-02-28",2526,1418.8],["2026-03-04",2526,1428.3],["2026-03-14",2526,1432.9],["2026-03-22",2526,1426.7],["2026-04-10",2526,1438.4],["2026-04-20",2526,1441.7],["2026-04-25",2526,1448.7],["2026-05-02",2526,1439.4],["2026-05-10",2526,1435.8],["2026-05-17",2526,1429.0],["2026-05-24",2526,1442.7]],"Wolves":[["2025-08-16",2526,1431.9],["2025-08-23",2526,1427.4],["2025-08-30",2526,1420.5],["2025-09-13",2526,1416.9],["2025-09-20",2526,1404.0],["2025-09-27",2526,1408.1],["2025-10-05",2526,1409.5],["2025-10-18",2526,1402.1],["2025-10-26",2526,1393.8],["2025-11-01",2526,1384.9],["2025-11-08",2526,1379.4],["2025-11-22",2526,1371.5],["2025-11-30",2526,1368.8],["2025-12-03",2526,1362.6],["2025-12-08",2526,1351.4],["2025-12-13",2526,1349.9],["2025-12-20",2526,1341.4],["2025-12-27",2526,1339.6],["2025-12-30",2526,1345.3],["2026-01-03",2526,1359.4],["2026-01-07",2526,1364.3],["2026-01-18",2526,1367.8],["2026-01-24",2526,1365.1],["2026-01-31",2526,1356.4],["2026-02-07",2526,1350.2],["2026-02-11",2526,1354.8],["2026-02-18",2526,1361.2],["2026-02-22",2526,1357.6],["2026-02-27",2526,1373.3],["2026-03-03",2526,1383.6],["2026-03-16",2526,1388.7],["2026-04-10",2526,1377.1],["2026-04-18",2526,1368.6],["2026-04-25",2526,1361.5],["2026-05-02",2526,1362.5],["2026-05-09",2526,1356.7],["2026-05-17",2526,1358.5],["2026-05-24",2526,1359.6]]}};</script>
 <script>
 const SVG = "http://www.w3.org/2000/svg";
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-function el(tag, attrs = {}, ...children) {
+function el(tag, attrs = {}, ...kids) {
   const node = tag.startsWith("svg:") ? document.createElementNS(SVG, tag.slice(4)) : document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
     if (k === "text") node.textContent = v;
-    else node.setAttribute(k, v);
+    else node.setAttribute(k, v === true ? "" : v);
   }
-  for (const c of children) if (c != null && c !== false) node.append(c);
+  for (const kid of kids) if (kid != null && kid !== false) node.append(kid);
   return node;
 }
 
-const pct = p => `${Math.round(p * 100)}%`;
+const pct = p => Math.round(p * 100);
 const day = s => new Date(`${s.slice(0, 10)}T12:00:00Z`);
 const fmt = (s, opts) => day(s).toLocaleDateString("en-GB", { timeZone: "UTC", ...opts });
-const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const signed = n => n > 0 ? `+${n}` : n < 0 ? `−${-n}` : "0";
+const tick = () => el("svg:svg", { width: 16, height: 16, viewBox: "0 0 16 16", "aria-hidden": "true" },
+  el("svg:path", { d: "M3 8.5l3 3 7-7", fill: "none", stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round" }));
+const cross = () => el("svg:svg", { width: 16, height: 16, viewBox: "0 0 16 16", "aria-hidden": "true" },
+  el("svg:path", { d: "M4 4l8 8M12 4l-8 8", fill: "none", stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round" }));
 
 const tip = document.getElementById("tip");
-function showTip(e, html) {
-  tip.innerHTML = html;
+function showTip(e, nodes) {
+  tip.replaceChildren(...nodes);
   tip.style.opacity = 1;
   const w = tip.offsetWidth, h = tip.offsetHeight;
-  let x = e.clientX + 12, y = e.clientY - h - 12;
-  if (x + w > innerWidth - 8) x = e.clientX - w - 12;
-  if (y < 8) y = e.clientY + 14;
+  let x = e.clientX + 14, y = e.clientY - h - 12;
+  if (x + w > innerWidth - 8) x = e.clientX - w - 14;
+  if (y < 8) y = e.clientY + 16;
   tip.style.left = `${x}px`; tip.style.top = `${y}px`;
 }
 const hideTip = () => { tip.style.opacity = 0; };
-function hover(node, html) {
-  node.addEventListener("mousemove", e => showTip(e, html()));
-  node.addEventListener("mouseleave", hideTip);
+
+const pickOf = m => [["H", m.pH], ["D", m.pD], ["A", m.pA]].reduce((a, b) => b[1] > a[1] ? b : a)[0];
+
+// whole-number percentages that always add up to 100 (largest remainder)
+function wholePercents(ps) {
+  const raw = ps.map(p => p * 100), out = raw.map(Math.floor);
+  const order = raw.map((v, i) => [v - out[i], i]).sort((a, b) => b[0] - a[0]);
+  const short = 100 - out.reduce((a, b) => a + b, 0);
+  for (let k = 0; k < short; k++) out[order[k][1]] += 1;
+  return out;
 }
 
-/* ---------- shared pieces ---------- */
-function outcomes(m, actual) {
-  const rows = [["h", m.home, m.pH, "Home"], ["d", "Draw", m.pD, "Draw"], ["a", m.away, m.pA, "Away"]];
-  const best = Math.max(m.pH, m.pD, m.pA);
-  return el("div", { class: "outcomes" }, ...rows.map(([cls, name, p, key]) => {
-    const row = el("div", { class: `outcome ${cls}${p === best ? " top" : ""}${actual === key ? " actual" : ""}` },
-      el("div", { class: "fill", style: `width:${(p * 100).toFixed(1)}%` }),
-      el("div", { class: "name" }, el("span", { class: "dot" }), name, actual === key ? el("span", { class: "tag", text: "Result" }) : null),
-      el("div", { class: "pct", text: pct(p) }));
-    hover(row, () => `<b>${esc(name)}</b> <span>${pct(p)} chance</span>`);
-    return row;
-  }));
+function cells(m, { result = null } = {}) {
+  const pick = pickOf(m), whole = wholePercents([m.pH, m.pD, m.pA]);
+  return [["H", "Home win"], ["D", "Draw"], ["A", "Away win"]].map(([key, name], i) => {
+    const v = whole[i];
+    const td = el("td", { class: `cell${key === pick ? " pick" : ""}`, "data-final": v, "aria-label": `${name} ${v}%${key === pick ? ", model's pick" : ""}` });
+    if (key === pick) td.append(el("span", { class: "ink" }));
+    td.append(el("span", { class: "n", text: v }));
+    if (result === key) td.append(el("span", { class: "ring", title: "Result" }));
+    return td;
+  });
 }
 
-function ratingSeries(team) {
-  return (DATA.ratings[team] || []).map(([d, season, elo]) => ({ d, t: day(d).getTime(), season, elo }));
+/* ---------- coupon ---------- */
+function renderCoupon() {
+  const fx = DATA.fixtures, body = document.getElementById("coupon-body");
+  const rounds = [...new Set(fx.map(m => m.round).filter(Boolean))].sort((a, b) => a - b);
+  const main = rounds[rounds.length - 1];
+  document.getElementById("coupon-title").textContent = main ? `Gameweek ${main}` : "This week";
+  const zone = fx[0] && fx[0].kickoff.endsWith("+01:00") ? "BST" : "GMT";
+  document.getElementById("coupon-sub").textContent = `${fx.length} matches · kick-off in UK time (${zone}) · select a match for details`;
+
+  let lastDay = null, n = 0;
+  for (const m of fx) {
+    const d = m.kickoff.slice(0, 10);
+    if (d !== lastDay) { body.append(el("tr", { class: "day" }, el("td", { colspan: 6, text: fmt(d, { weekday: "long", day: "numeric", month: "long" }) }))); lastDay = d; }
+    n += 1;
+    const ko = el("td", { class: "ko hide-sm" }, m.kickoff.slice(11, 16), m.odds ? null : el("span", { class: "dagger", title: "No bookmaker odds yet", text: "†" }),
+      m.round && m.round !== main ? el("span", { style: "display:block;font-size:12px", text: `Gameweek ${m.round}` }) : null);
+    const row = el("tr", { class: "fixture", tabindex: 0, "aria-expanded": "false" },
+      el("td", { class: "no", text: n }), ko,
+      el("td", { class: "match" }, m.home, el("span", { class: "v", text: "v" }), m.away,
+        el("span", { class: "ko-sm", text: `${m.kickoff.slice(11, 16)}${m.odds ? "" : " †"}` })),
+      ...cells(m));
+    const detail = el("tr", { class: "detail", hidden: true }, el("td", { colspan: 6 }));
+    const toggle = () => {
+      const open = detail.hidden;
+      detail.hidden = !open;
+      row.setAttribute("aria-expanded", String(open));
+      if (open) renderMatchDetail(detail.firstChild, m);
+    };
+    row.addEventListener("click", toggle);
+    row.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+    body.append(row, detail);
+  }
+  const noOdds = fx.filter(m => !m.odds).length;
+  document.getElementById("coupon-foot").textContent =
+    "Filled box: the model's pick. Numbers are percentage chances and add up to 100." +
+    (noOdds ? ` † Bookmaker odds aren't out yet for ${noOdds === fx.length ? "any" : noOdds} of these matches, so they use ratings and xG only.` : "");
+  renderStub();
 }
 
+function teamRow(name) { return DATA.table.find(t => t.Team === name) || {}; }
+
+function renderMatchDetail(td, m) {
+  const h = teamRow(m.home), a = teamRow(m.away);
+  const chart = el("div");
+  const f = (label, hv, av) => [el("span", { text: label }), el("span", { class: "fig", text: hv }), el("span", { class: "fig", text: av })];
+  td.replaceChildren(el("div", { class: "detail-grid" },
+    el("div", {}, el("h3", { text: "Strength rating this season", style: "margin-bottom:6px" }), chart),
+    el("div", { class: "facts" },
+      el("span"), el("span", { class: "hd", text: m.home }), el("span", { class: "hd", text: m.away }),
+      ...f("Table position", h.Pos ?? "–", a.Pos ?? "–"),
+      ...f("Points", h.Pts ?? "–", a.Pts ?? "–"),
+      ...f("Rating", h.Elo ?? "–", a.Elo ?? "–"),
+      ...f("xG for per game", h.xgf?.toFixed(2) ?? "–", a.xgf?.toFixed(2) ?? "–"),
+      ...f("xG against per game", h.xga?.toFixed(2) ?? "–", a.xga?.toFixed(2) ?? "–"))));
+  lineChart(chart, [
+    { name: m.home, color: "var(--red)", pts: series(m.home, true) },
+    { name: m.away, color: "var(--ink)", pts: series(m.away, true), dash: "5 4" },
+  ], 180);
+}
+
+function renderStub() {
+  const stub = document.getElementById("stub"), rec = DATA.record;
+  if (!rec.length) {
+    stub.append(el("div", { class: "stub-head" }, el("h2", { text: "Last coupon" })),
+      el("div", { class: "stub-section" }, el("p", { text: "Results appear here once this coupon's matches are played." })));
+    return;
+  }
+  const lastDates = [...new Set(rec.map(r => r.date))].sort();
+  const latestWeek = weekOf(lastDates[lastDates.length - 1]);
+  const last = rec.filter(r => weekOf(r.date) === latestWeek);
+  const hits = last.filter(r => r.correct).length;
+  const all = rec.filter(r => r.correct).length;
+  stub.append(
+    el("div", { class: "stub-head" },
+      el("h2", { text: "Last coupon" }),
+      el("div", { class: "stub-score" }, el("span", { class: "fig", text: `${hits}/${last.length}` }), el("span", { text: "picks correct" }))),
+    el("ul", { class: "stub-list" }, ...last.map(r => el("li", {},
+      el("span", {}, `${r.home} `, el("span", { class: "fig", text: `${r.hg}–${r.ag}` }), ` ${r.away}`),
+      el("span", { class: `verdict ${r.correct ? "hit" : "miss"}`, "aria-label": r.correct ? "Correct" : "Missed" }, r.correct ? tick() : cross())))),
+    el("div", { class: "stub-section" },
+      el("h3", { text: "How often the pick is right" }),
+      el("div", { class: "bench" },
+        ...benchRow("Live so far", all / rec.length, false),
+        ...benchRow("Tested", 0.535, false),
+        ...benchRow("Bookmakers", 0.536, true)),
+      el("p", { text: `Live: ${all} of ${rec.length} settled matches. Tested on 1,240 past matches.` })));
+}
+
+function benchRow(label, v, dim) {
+  return [el("span", { text: label }),
+    el("span", { class: "track" }, el("span", { class: `fill${dim ? " dim" : ""}`, style: `width:${(v * 100).toFixed(1)}%` })),
+    el("span", { class: "fig", text: `${(v * 100).toFixed(v * 1000 % 10 ? 1 : 0)}%` })];
+}
+
+function weekOf(d) {
+  const t = day(d); t.setUTCDate(t.getUTCDate() - ((t.getUTCDay() + 6) % 7));
+  return t.toISOString().slice(0, 10);
+}
+
+/* signature: figures flip into place like a departure board, then the pick is inked */
+function flipIn(scope) {
+  const tds = [...scope.querySelectorAll(".cell")];
+  if (reduceMotion) return;
+  tds.forEach((td, i) => {
+    const n = td.querySelector(".n"), final = td.dataset.final, ink = td.querySelector(".ink");
+    if (ink) { ink.style.clipPath = "inset(0 100% 0 0)"; td.classList.remove("pick"); }
+    const row = Math.floor(i / 3), start = 120 + row * 55 + (i % 3) * 25, flips = 6 + (i % 3);
+    for (let k = 0; k < flips; k++) {
+      setTimeout(() => { n.textContent = String(10 + Math.floor(Math.random() * 80)); }, start + k * 45);
+    }
+    setTimeout(() => {
+      n.textContent = final;
+      if (ink) {
+        td.classList.add("pick");
+        ink.animate([{ clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0 0 0)" }],
+          { duration: 320, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "forwards" });
+      }
+    }, start + flips * 45);
+  });
+}
+
+/* ---------- results ---------- */
+function renderResults() {
+  const rec = DATA.record, box = document.getElementById("results-sheets");
+  const sub = document.getElementById("results-sub");
+  if (!rec.length) { sub.textContent = "Nothing settled yet. Results appear after the first matches are played."; return; }
+  const hits = rec.filter(r => r.correct).length;
+  sub.textContent = `${hits} of ${rec.length} picks correct so far. The circle marks what actually happened.`;
+  const byDay = {};
+  for (const r of rec) (byDay[r.date] ??= []).push(r);
+  for (const d of Object.keys(byDay).sort().reverse()) {
+    const rows = byDay[d], h = rows.filter(r => r.correct).length;
+    box.append(el("div", { class: "sheet" },
+      el("div", { class: "sheet-head" }, el("h2", { text: fmt(d, { weekday: "long", day: "numeric", month: "long" }) }), el("p", { text: `${h} of ${rows.length} correct` })),
+      el("table", { class: "coupon" },
+        el("thead", {}, el("tr", {},
+          el("th", { scope: "col", class: "left" , text: "Match" }), el("th", { scope: "col", text: "Score" }),
+          el("th", { scope: "col" }, el("span", { class: "key", text: "1" }), "Home"),
+          el("th", { scope: "col" }, el("span", { class: "key", text: "X" }), "Draw"),
+          el("th", { scope: "col" }, el("span", { class: "key", text: "2" }), "Away"),
+          el("th", { scope: "col", class: "hide-sm" }))),
+        el("tbody", {}, ...rows.map(r => el("tr", {},
+          el("td", { class: "match" }, r.home, el("span", { class: "v", text: "v" }), r.away),
+          el("td", { class: "score", text: `${r.hg}–${r.ag}` }),
+          ...cells(r, { result: { Home: "H", Draw: "D", Away: "A" }[r.result] }),
+          el("td", { class: `verdict ${r.correct ? "hit" : "miss"}` }, r.correct ? tick() : cross(), r.correct ? "Correct" : "Missed")))))));
+  }
+  renderWeekly();
+}
+
+function renderWeekly() {
+  const box = document.getElementById("results-weekly");
+  const weeks = {};
+  for (const r of DATA.record) (weeks[weekOf(r.date)] ??= []).push(r.correct);
+  const rows = Object.entries(weeks).sort().map(([w, v]) => ({ w, rate: v.filter(Boolean).length / v.length, n: v.length }));
+  if (rows.length < 2) { box.replaceChildren(); return; }
+  const W = box.clientWidth - 40;
+  if (W <= 0) return;
+  const H = 170, m = { t: 10, r: 10, b: 24, l: 40 };
+  const y = v => m.t + (1 - v) * (H - m.t - m.b);
+  const svg = el("svg:svg", { width: W, height: H, role: "img", "aria-label": "Share of correct picks by week" });
+  for (const v of [0, 0.5, 1]) svg.append(el("svg:line", { class: "grid", x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }), el("svg:text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end", text: `${v * 100}%` }));
+  const step = (W - m.l - m.r) / rows.length, bw = Math.min(26, step * 0.55);
+  rows.forEach((r, i) => {
+    const cx = m.l + step * (i + 0.5);
+    const bar = el("svg:rect", { x: cx - bw / 2, y: y(r.rate), width: bw, height: y(0) - y(r.rate), fill: "var(--red)" });
+    bar.addEventListener("mousemove", e => showTip(e, [el("span", { class: "fig", text: `${Math.round(r.rate * 100)}%` }), ` week of ${fmt(r.w, { day: "numeric", month: "short" })}, ${r.n} matches`]));
+    bar.addEventListener("mouseleave", hideTip);
+    svg.append(bar, el("svg:text", { x: cx, y: H - 6, "text-anchor": "middle", text: fmt(r.w, { day: "numeric", month: "short" }) }));
+  });
+  svg.append(el("svg:line", { class: "base", x1: m.l, x2: W - m.r, y1: y(0.535), y2: y(0.535) }),
+    el("svg:text", { x: W - m.r, y: y(0.535) - 6, "text-anchor": "end", text: "53.5% tested" }));
+  box.replaceChildren(el("div", { class: "sheet", style: "margin-bottom:24px" },
+    el("div", { class: "sheet-head" }, el("h2", { text: "Correct picks by week" })),
+    el("div", { style: "padding:12px 20px 16px" }, svg)));
+}
+
+/* ---------- teams ---------- */
+let selected = null;
 const currentSeason = Object.values(DATA.ratings).flat().reduce((a, r) => r[1] > a ? r[1] : a, "");
+
+function series(team, thisSeasonOnly = false) {
+  return (DATA.ratings[team] || []).filter(r => !thisSeasonOnly || r[1] === currentSeason)
+    .map(([d, season, elo]) => ({ d, t: day(d).getTime(), season, elo }));
+}
+function change(team, games = 5) {
+  const s = series(team);
+  return s.length < 2 ? 0 : Math.round(s[s.length - 1].elo - s[Math.max(0, s.length - 1 - games)].elo);
+}
 
 function niceTicks(lo, hi, count) {
   const raw = (hi - lo) / count, mag = 10 ** Math.floor(Math.log10(raw));
@@ -322,300 +577,167 @@ function niceTicks(lo, hi, count) {
   return out;
 }
 
-// line chart of one or more rating series, with a hover crosshair
-function lineChart(box, series, { height = 240, since = null } = {}) {
+function lineChart(box, lines, H = 220) {
   const W = box.clientWidth;
   if (!W) return;
-  const H = height, m = { t: 10, r: 48, b: 24, l: 40 };
-  const lines = series.map(s => ({ ...s, pts: s.pts.filter(p => since == null || p.t >= since) })).filter(s => s.pts.length);
-  if (!lines.length) { box.replaceChildren(); return; }
-  const all = lines.flatMap(s => s.pts);
+  lines = lines.filter(l => l.pts.length);
+  if (!lines.length) return;
+  const m = { t: 10, r: 52, b: 24, l: 44 };
+  const all = lines.flatMap(l => l.pts);
   const t0 = Math.min(...all.map(p => p.t)), t1 = Math.max(...all.map(p => p.t));
   const lo = Math.min(1500, ...all.map(p => p.elo)) - 12, hi = Math.max(1500, ...all.map(p => p.elo)) + 12;
   const x = t => m.l + (t - t0) / (t1 - t0 || 1) * (W - m.l - m.r);
   const y = v => m.t + (hi - v) / (hi - lo) * (H - m.t - m.b);
-  const svg = el("svg:svg", { width: W, height: H });
-
-  for (const v of niceTicks(lo, hi, 4)) {
-    svg.append(el("svg:line", { class: "gridline", x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }),
-               el("svg:text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end", text: v }));
+  const svg = el("svg:svg", { width: W, height: H, role: "img", "aria-label": `Rating over time: ${lines.map(l => l.name).join(" and ")}` });
+  for (const v of niceTicks(lo, hi, 4)) svg.append(el("svg:line", { class: "grid", x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }), el("svg:text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end", text: v }));
+  const months = (t1 - t0) / 864e5 > 200 ? 2 : 1, s = new Date(t0);
+  for (let d = new Date(Date.UTC(s.getUTCFullYear(), s.getUTCMonth() + 1, 1)); d.getTime() <= t1; d.setUTCMonth(d.getUTCMonth() + months)) {
+    svg.append(el("svg:text", { x: x(d.getTime()), y: H - 4, "text-anchor": "middle", text: d.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" }) }));
   }
-  const stepMonths = (t1 - t0) / 864e5 > 200 ? 2 : 1;
-  const s = new Date(t0);
-  for (let d = new Date(Date.UTC(s.getUTCFullYear(), s.getUTCMonth() + 1, 1)); d.getTime() <= t1; d.setUTCMonth(d.getUTCMonth() + stepMonths)) {
-    svg.append(el("svg:text", { x: x(d.getTime()), y: H - 4, "text-anchor": "middle",
-      text: d.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" }) }));
-  }
-  svg.append(el("svg:line", { class: "ref", x1: m.l, x2: W - m.r, y1: y(1500), y2: y(1500) }));
-
-  for (const line of lines) {
-    for (const season of new Set(line.pts.map(p => p.season))) {
-      const seg = line.pts.filter(p => p.season === season);
+  svg.append(el("svg:line", { class: "base", x1: m.l, x2: W - m.r, y1: y(1500), y2: y(1500) }));
+  for (const l of lines) {
+    for (const season of new Set(l.pts.map(p => p.season))) {
+      const seg = l.pts.filter(p => p.season === season);
       svg.append(el("svg:path", { d: seg.map((p, i) => `${i ? "L" : "M"}${x(p.t).toFixed(1)},${y(p.elo).toFixed(1)}`).join(""),
-        fill: "none", stroke: line.color, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+        fill: "none", stroke: l.color, "stroke-width": 2, "stroke-dasharray": l.dash || null, "stroke-linejoin": "round" }));
     }
-    const last = line.pts[line.pts.length - 1];
-    svg.append(el("svg:circle", { cx: x(last.t), cy: y(last.elo), r: 3.5, fill: line.color, stroke: "var(--card)", "stroke-width": 2 }));
   }
-  // value labels at the line ends, nudged apart if they collide
-  const ends = lines.map(l => ({ l, yy: y(l.pts[l.pts.length - 1].elo) })).sort((a, b) => a.yy - b.yy);
-  for (let i = 1; i < ends.length; i++) if (ends[i].yy - ends[i - 1].yy < 13) ends[i].yy = ends[i - 1].yy + 13;
-  for (const { l, yy } of ends) {
-    svg.append(el("svg:text", { class: "label", x: W - m.r + 8, y: yy + 4, text: Math.round(l.pts[l.pts.length - 1].elo) }));
+  const ends = lines.map(l => ({ l, p: l.pts[l.pts.length - 1] })).map(o => ({ ...o, yy: y(o.p.elo) })).sort((a, b) => a.yy - b.yy);
+  for (let i = 1; i < ends.length; i++) if (ends[i].yy - ends[i - 1].yy < 14) ends[i].yy = ends[i - 1].yy + 14;
+  for (const { l, p, yy } of ends) {
+    svg.append(el("svg:circle", { cx: x(p.t), cy: y(p.elo), r: 3.5, fill: l.color }),
+      el("svg:text", { class: "lbl", x: W - m.r + 8, y: yy + 4, text: Math.round(p.elo) }));
   }
-
-  const cross = el("svg:line", { stroke: "var(--muted)", "stroke-opacity": .5, y1: m.t, y2: H - m.b, visibility: "hidden" });
-  const dots = lines.map(l => el("svg:circle", { r: 4, fill: l.color, stroke: "var(--card)", "stroke-width": 2, visibility: "hidden" }));
+  const cross = el("svg:line", { stroke: "var(--muted)", y1: m.t, y2: H - m.b, visibility: "hidden" });
   const hit = el("svg:rect", { x: m.l, y: 0, width: Math.max(0, W - m.l - m.r), height: H, fill: "transparent" });
   const nearest = (pts, mx) => pts.reduce((a, b) => Math.abs(x(b.t) - mx) < Math.abs(x(a.t) - mx) ? b : a);
   hit.addEventListener("mousemove", e => {
     const mx = e.clientX - svg.getBoundingClientRect().left;
-    const near = lines.map(l => nearest(l.pts, mx));
-    const ref = nearest(near, mx);
+    const near = lines.map(l => nearest(l.pts, mx)), ref = nearest(near, mx);
     cross.setAttribute("x1", x(ref.t)); cross.setAttribute("x2", x(ref.t)); cross.setAttribute("visibility", "visible");
-    near.forEach((p, i) => { dots[i].setAttribute("cx", x(p.t)); dots[i].setAttribute("cy", y(p.elo)); dots[i].setAttribute("visibility", "visible"); });
-    showTip(e, `<span>${esc(fmt(ref.d, { day: "numeric", month: "short", year: "numeric" }))}</span><br>` +
-      lines.map((l, i) => `${esc(l.name)} <b>${Math.round(near[i].elo)}</b>`).join("<br>"));
+    showTip(e, [fmt(ref.d, { day: "numeric", month: "short", year: "numeric" }), ...lines.flatMap((l, i) => [el("br"), `${l.name} `, el("span", { class: "fig", text: Math.round(near[i].elo) })])]);
   });
-  hit.addEventListener("mouseleave", () => { hideTip(); cross.setAttribute("visibility", "hidden"); dots.forEach(d => d.setAttribute("visibility", "hidden")); });
-  svg.append(cross, ...dots, hit);
+  hit.addEventListener("mouseleave", () => { hideTip(); cross.setAttribute("visibility", "hidden"); });
+  svg.append(cross, hit);
   box.replaceChildren(svg);
 }
 
-function sparkline(pts, color) {
-  const W = 54, H = 20;
-  if (pts.length < 2) return el("svg:svg", { width: W, height: H });
-  const lo = Math.min(...pts), hi = Math.max(...pts);
-  const x = i => i / (pts.length - 1) * W, y = v => H - 2 - (v - lo) / (hi - lo || 1) * (H - 4);
-  return el("svg:svg", { width: W, height: H },
-    el("svg:path", { d: pts.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(""),
-      fill: "none", stroke: color, "stroke-width": 1.5, "stroke-linejoin": "round" }));
-}
-
-function change(team, games = 5) {
-  const pts = ratingSeries(team);
-  if (pts.length < 2) return 0;
-  return pts[pts.length - 1].elo - pts[Math.max(0, pts.length - 1 - games)].elo;
-}
-function changeText(c) {
-  const r = Math.round(c);
-  return r > 0 ? ["up", `▲ ${r}`] : r < 0 ? ["down", `▼ ${-r}`] : ["flat", "–"];
-}
-
-/* ---------- Matches ---------- */
-let featuredMatch = null;
-
-function kickoffText(m) {
-  return `${fmt(m.kickoff, { weekday: "short", day: "numeric", month: "short" })} · ${m.kickoff.slice(11, 16)}`;
-}
-
-function renderFixtures() {
-  const fx = DATA.fixtures;
-  const rounds = [...new Set(fx.map(m => m.round).filter(Boolean))];
-  const zone = fx.length && fx[0].kickoff.endsWith("+01:00") ? "BST" : "GMT";
-  document.getElementById("fixtures-title").textContent = rounds.length ? `Gameweek ${rounds[rounds.length - 1]}` : "Upcoming matches";
-  document.getElementById("fixtures-sub").textContent = `${fx.length} matches · kick-off times in UK time (${zone})`;
-
-  const rating = t => (DATA.table.find(r => r.Team === t) || {}).Elo || 0;
-  featuredMatch = [...fx].sort((a, b) => (rating(b.home) + rating(b.away)) - (rating(a.home) + rating(a.away)))[0];
-
-  document.getElementById("market-grid").replaceChildren(...fx.filter(m => m !== featuredMatch).map(marketCard));
-  renderFeatured();
-
-  const without = fx.filter(m => !m.odds).length;
-  document.getElementById("fixtures-note").textContent = without
-    ? "“Model only” means bookmaker odds aren't out yet, so the forecast uses ratings and xG alone. It updates once odds are published."
-    : "";
-}
-
-function marketCard(m) {
-  return el("div", { class: "card market" },
-    el("div", { class: "market-meta" }, el("span", { text: kickoffText(m) }), el("span", { text: m.round ? `GW${m.round}` : "" })),
-    el("div", { class: "market-title", text: `${m.home} vs ${m.away}` }),
-    outcomes(m),
-    el("div", { class: "market-foot" }, el("span", { class: "pill", text: m.odds ? "Model + odds" : "Model only" })));
-}
-
-function renderFeatured() {
-  const m = featuredMatch, box = document.getElementById("featured");
-  if (!m) { box.hidden = true; return; }
-  const chart = el("div");
-  box.replaceChildren(
-    el("div", {},
-      el("div", { class: "market-meta", style: "margin-bottom:6px" }, el("span", { text: `Featured · ${kickoffText(m)}` })),
-      el("div", { class: "market-title", style: "margin-bottom:14px", text: `${m.home} vs ${m.away}` }),
-      outcomes(m),
-      el("div", { class: "market-foot", style: "margin-top:12px" },
-        el("span", { class: "pill", text: m.odds ? "Model + odds" : "Model only" }),
-        el("span", { text: m.round ? `Gameweek ${m.round}` : "" }))),
-    el("div", { class: "featured-chart" },
-      el("div", { class: "chart-head" },
-        el("h2", { text: "Strength this season" }),
-        el("div", { class: "legend" },
-          el("span", {}, el("i", { style: "background:var(--home)" }), m.home),
-          el("span", {}, el("i", { style: "background:var(--away)" }), m.away))),
-      chart));
-  const thisSeason = t => ratingSeries(t).filter(p => p.season === currentSeason);
-  lineChart(chart, [
-    { name: m.home, color: "var(--home)", pts: thisSeason(m.home) },
-    { name: m.away, color: "var(--away)", pts: thisSeason(m.away) },
-  ], { height: 230 });
-}
-
-/* ---------- Results ---------- */
-function renderRecord() {
-  const rec = DATA.record, stats = document.getElementById("record-stats"), days = document.getElementById("record-days");
-  if (!rec.length) { stats.hidden = true; days.append(el("p", { class: "sub", text: "No forecasts have been settled yet." })); return; }
-  const hits = rec.filter(r => r.correct).length;
-  const stat = (label, value, hint) => el("div", { class: "stat" },
-    el("div", { class: "label", text: label }), el("div", { class: "value num", text: value }), el("div", { class: "hint", text: hint }));
-  const first = rec.reduce((a, r) => r.date < a ? r.date : a, rec[0].date);
-  stats.replaceChildren(
-    stat("Correct picks", pct(hits / rec.length), `${hits} of ${rec.length} matches`),
-    stat("Expected", "53.5%", "from testing on past seasons"),
-    stat("Settled", String(rec.length), `since ${fmt(first, { day: "numeric", month: "short" })}`));
-
-  const byDay = {};
-  for (const r of rec) (byDay[r.date] ??= []).push(r);
-  days.replaceChildren(...Object.keys(byDay).sort().reverse().flatMap(d => [
-    el("div", { class: "section-title" },
-      el("h2", { text: fmt(d, { weekday: "long", day: "numeric", month: "long" }) }),
-      el("span", { class: "sub", text: `${byDay[d].filter(r => r.correct).length} of ${byDay[d].length} correct` })),
-    el("div", { class: "grid" }, ...byDay[d].map(r => el("div", { class: "card market" },
-      el("div", { class: "market-meta" }, el("span", { text: "Full time" }),
-        el("span", { class: `pill${r.correct ? " up" : ""}`, text: r.correct ? "Correct" : "Missed" })),
-      el("div", { class: "market-title" }, `${r.home} `, el("span", { class: "score", text: `${r.hg}–${r.ag}` }), ` ${r.away}`),
-      outcomes(r, r.result)))),
-  ]));
-}
-
-/* ---------- Teams ---------- */
-let selectedTeam = null;
-const ordinal = n => n + ({ 1: "st", 2: "nd", 3: "rd" }[n % 100 > 10 && n % 100 < 14 ? 0 : n % 10] || "th");
-
-function renderRankings() {
-  const ranked = [...DATA.table].sort((a, b) => b.Elo - a.Elo);
-  document.getElementById("rank-list").replaceChildren(...ranked.map((t, i) => {
-    const [cls, txt] = changeText(change(t.Team));
-    const spark = ratingSeries(t.Team).filter(p => p.season === currentSeason).map(p => p.elo);
-    const row = el("div", { class: `rank-row${t.Team === selectedTeam ? " selected" : ""}` },
-      el("span", { class: "pos num", text: i + 1 }),
-      el("span", { class: "team", text: t.Team }),
-      sparkline(spark, { up: "var(--up)", down: "var(--down)", flat: "var(--muted)" }[cls]),
-      el("span", { class: "rating num", text: t.Elo }),
-      el("span", { class: `change num ${cls}`, text: txt }));
-    row.addEventListener("click", () => selectTeam(t.Team));
+function renderTable() {
+  document.getElementById("table-body").replaceChildren(...DATA.table.map(t => {
+    const c = change(t.Team);
+    const row = el("tr", { class: t.Team === selected ? "on" : "", tabindex: 0, "aria-selected": String(t.Team === selected) },
+      el("td", { class: "pos", text: t.Pos }), el("td", { class: "t", text: t.Team }),
+      el("td", {}, el("span", { class: "fig", text: t.P })),
+      el("td", {}, el("span", { class: "fig", text: signed(t.GD) })),
+      el("td", {}, el("span", { class: "fig", style: "font-weight:700", text: t.Pts })),
+      el("td", {}, el("span", { class: "fig", text: t.Elo })),
+      el("td", {}, el("span", { class: `fig ${c > 0 ? "up" : c < 0 ? "down" : ""}`, text: signed(c) })));
+    row.addEventListener("click", () => select(t.Team));
+    row.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(t.Team); } });
     return row;
   }));
 }
 
-function renderDetail() {
-  const t = DATA.table.find(r => r.Team === selectedTeam);
-  const box = document.getElementById("team-detail");
-  const [cls, txt] = changeText(change(t.Team));
-  const chart = el("div", { style: "margin-top:14px" });
-  box.replaceChildren(
-    el("div", { class: "detail-head" },
-      el("div", {},
-        el("div", { class: "detail-name", text: t.Team }),
-        el("div", { class: "detail-value num" }, String(t.Elo), el("span", { class: `change ${cls}`, text: `${txt} last 5 games` }))),
-      el("span", { class: "pill", text: `${ordinal(t.Pos)} in table` })),
-    chart,
-    el("div", { class: "facts" },
-      el("div", {}, "Points", el("b", { class: "num", text: `${t.Pts} from ${t.P}` })),
-      el("div", {}, "Goal difference", el("b", { class: "num", text: t.GD > 0 ? `+${t.GD}` : String(t.GD) })),
-      el("div", {}, "xG for per game", el("b", { class: "num", text: t.xgf != null ? t.xgf.toFixed(2) : "–" })),
-      el("div", {}, "xG against per game", el("b", { class: "num", text: t.xga != null ? t.xga.toFixed(2) : "–" }))));
-  lineChart(chart, [{ name: t.Team, color: "var(--accent)", pts: ratingSeries(t.Team) }], { height: 220 });
+function renderTeamPanel() {
+  const t = teamRow(selected), c = change(selected), chart = el("div", { style: "margin-top:14px" });
+  const rank = [...DATA.table].sort((a, b) => b.Elo - a.Elo).findIndex(r => r.Team === selected) + 1;
+  document.getElementById("team-panel").replaceChildren(
+    el("div", { class: "team-top" },
+      el("div", {}, el("div", { class: "team-name", text: t.Team }), el("div", { class: "team-sub", text: `${ordinal(t.Pos)} in the table · ${ordinal(rank)} by rating` })),
+      el("div", { class: "team-figs" },
+        el("div", {}, "Rating", el("span", { class: "fig", text: t.Elo })),
+        el("div", {}, "Last 5 games", el("span", { class: `fig ${c > 0 ? "up" : c < 0 ? "down" : ""}`, text: signed(c) })),
+        el("div", {}, "xG for / against", el("span", { class: "fig", text: t.xgf != null ? `${t.xgf.toFixed(2)} / ${t.xga.toFixed(2)}` : "–" })))),
+    chart);
+  lineChart(chart, [{ name: t.Team, color: "var(--red)", pts: series(selected) }], 220);
 }
 
+const ordinal = n => n + ({ 1: "st", 2: "nd", 3: "rd" }[(n % 100 > 10 && n % 100 < 14) ? 0 : n % 10] || "th");
+
 function renderXg() {
-  const box = document.getElementById("xg-chart");
-  const W = box.clientWidth;
+  const box = document.getElementById("xg-chart"), W = box.clientWidth;
   if (!W) return;
   const teams = DATA.table.filter(t => t.xgf != null && t.xga != null);
-  const H = Math.min(400, Math.max(300, W * 0.6)), m = { t: 10, r: 12, b: 36, l: 40 };
+  const H = Math.min(400, Math.max(300, W * 0.62)), m = { t: 12, r: 12, b: 40, l: 44 };
   const xs = teams.map(t => t.xgf), ys = teams.map(t => t.xga);
   const xlo = Math.min(...xs) - 0.1, xhi = Math.max(...xs) + 0.1, ylo = Math.min(...ys) - 0.1, yhi = Math.max(...ys) + 0.1;
   const x = v => m.l + (v - xlo) / (xhi - xlo) * (W - m.l - m.r);
   const y = v => m.t + (v - ylo) / (yhi - ylo) * (H - m.t - m.b);
-  const svg = el("svg:svg", { width: W, height: H });
-  for (const v of niceTicks(xlo, xhi, 6)) svg.append(
-    el("svg:line", { class: "gridline", x1: x(v), x2: x(v), y1: m.t, y2: H - m.b }),
-    el("svg:text", { x: x(v), y: H - m.b + 16, "text-anchor": "middle", text: v.toFixed(1) }));
-  for (const v of niceTicks(ylo, yhi, 5)) svg.append(
-    el("svg:line", { class: "gridline", x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }),
-    el("svg:text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end", text: v.toFixed(1) }));
-  svg.append(
-    el("svg:text", { x: (m.l + W - m.r) / 2, y: H - 2, "text-anchor": "middle", text: "Chances created" }),
-    el("svg:text", { x: -(m.t + H - m.b) / 2, y: 10, transform: "rotate(-90)", "text-anchor": "middle", text: "Chances allowed" }),
-    el("svg:text", { x: W - m.r - 4, y: m.t + 12, "text-anchor": "end", text: "Best" }));
-
+  const svg = el("svg:svg", { width: W, height: H, role: "img", "aria-label": "Chances created against chances allowed, per team" });
+  for (const v of niceTicks(xlo, xhi, 6)) svg.append(el("svg:line", { class: "grid", x1: x(v), x2: x(v), y1: m.t, y2: H - m.b }), el("svg:text", { x: x(v), y: H - m.b + 16, "text-anchor": "middle", text: v.toFixed(1) }));
+  for (const v of niceTicks(ylo, yhi, 5)) svg.append(el("svg:line", { class: "grid", x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }), el("svg:text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end", text: v.toFixed(1) }));
+  svg.append(el("svg:text", { x: (m.l + W - m.r) / 2, y: H - 4, "text-anchor": "middle", text: "Chances created per game" }),
+    el("svg:text", { x: -(m.t + H - m.b) / 2, y: 12, transform: "rotate(-90)", "text-anchor": "middle", text: "Chances allowed per game (fewer is higher)" }));
   const pts = teams.map(t => ({ t, x: x(t.xgf), y: y(t.xga) }));
   for (const p of pts) {
-    const on = p.t.Team === selectedTeam;
-    const dot = el("svg:circle", { cx: p.x, cy: p.y, r: on ? 6 : 4.5, fill: on ? "var(--accent)" : "var(--muted)",
-      "fill-opacity": on ? 1 : 0.55, stroke: "var(--card)", "stroke-width": 2, style: "cursor:pointer" });
-    hover(dot, () => `<b>${esc(p.t.Team)}</b><br><span>Created ${p.t.xgf.toFixed(2)} · Allowed ${p.t.xga.toFixed(2)}</span>`);
-    dot.addEventListener("click", () => selectTeam(p.t.Team));
+    const on = p.t.Team === selected;
+    const dot = el("svg:circle", { cx: p.x, cy: p.y, r: on ? 7 : 5, fill: on ? "var(--red)" : "var(--sheet)", stroke: on ? "var(--red)" : "var(--ink-2)", "stroke-width": on ? 2 : 1.5, style: "cursor:pointer" });
+    dot.addEventListener("mousemove", e => showTip(e, [el("strong", { text: p.t.Team }), el("br"), `Created ${p.t.xgf.toFixed(2)} · allowed ${p.t.xga.toFixed(2)}`]));
+    dot.addEventListener("mouseleave", hideTip);
+    dot.addEventListener("click", () => select(p.t.Team));
     svg.append(dot);
   }
   box.replaceChildren(svg);
-
-  // names: selected team first, then any others that fit without covering a dot or another name
-  const placed = [], overlap = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
-  const order = [...pts].sort((a, b) => (b.t.Team === selectedTeam) - (a.t.Team === selectedTeam));
-  for (const p of order) {
-    const on = p.t.Team === selectedTeam;
-    const label = el("svg:text", { class: "label", text: p.t.Team, style: on ? "fill:var(--ink);font-weight:600" : "" });
+  const placed = [], over = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  for (const p of [...pts].sort((a, b) => (b.t.Team === selected) - (a.t.Team === selected))) {
+    const on = p.t.Team === selected;
+    const label = el("svg:text", { class: "lbl", text: p.t.Team, style: on ? "fill:var(--red);font-weight:700" : null });
     svg.append(label);
-    const w = label.getComputedTextLength(), h = 12;
-    const spots = [[p.x + 8, p.y - h / 2, "start"], [p.x - 8 - w, p.y - h / 2, "end"], [p.x - w / 2, p.y - 8 - h, "middle"], [p.x - w / 2, p.y + 8, "middle"]];
-    const spot = spots.find(([sx, sy]) => {
+    const w = label.getComputedTextLength(), h = 13;
+    const spot = [[p.x + 9, p.y - h / 2, "start"], [p.x - 9 - w, p.y - h / 2, "end"], [p.x - w / 2, p.y - 9 - h, "middle"], [p.x - w / 2, p.y + 9, "middle"]].find(([sx, sy]) => {
       const b = { x: sx, y: sy, w, h };
-      return sx >= m.l && sx + w <= W && sy >= 0 && sy + h <= H - m.b
-        && !pts.some(q => q !== p && overlap(b, { x: q.x - 5, y: q.y - 5, w: 10, h: 10 }))
-        && !placed.some(o => overlap(b, o));
+      return sx >= m.l && sx + w <= W - m.r && sy >= 0 && sy + h <= H - m.b && !pts.some(q => q !== p && over(b, { x: q.x - 6, y: q.y - 6, w: 12, h: 12 })) && !placed.some(o => over(b, o));
     });
     if (!spot) { label.remove(); continue; }
     const [sx, sy, anchor] = spot;
     placed.push({ x: sx, y: sy, w, h });
     label.setAttribute("x", anchor === "start" ? sx : anchor === "end" ? sx + w : sx + w / 2);
-    label.setAttribute("y", sy + h - 2);
+    label.setAttribute("y", sy + h - 3);
     label.setAttribute("text-anchor", anchor);
   }
 }
 
-function selectTeam(team) {
-  selectedTeam = team;
-  renderRankings(); renderDetail(); renderXg();
+function select(team) {
+  selected = team;
+  renderTable(); renderTeamPanel(); renderXg();
 }
 
 /* ---------- page ---------- */
-const views = ["fixtures", "record", "teams"];
-function show(view) {
-  for (const v of views) document.getElementById(v).hidden = v !== view;
-  for (const b of document.querySelectorAll("nav button")) b.setAttribute("aria-selected", b.dataset.view === view);
-  if (view === "fixtures") renderFeatured();
-  if (view === "teams") { renderDetail(); renderXg(); }
+const tabs = [...document.querySelectorAll(".tab")];
+function show(id, focus = false) {
+  for (const t of tabs) {
+    const on = t.getAttribute("aria-controls") === id;
+    t.setAttribute("aria-selected", String(on));
+    t.tabIndex = on ? 0 : -1;
+    document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+    if (on && focus) t.focus();
+  }
+  if (id === "teams") { renderTeamPanel(); renderXg(); }
+  if (id === "results") renderWeekly();
   scrollTo(0, 0);
 }
-document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => show(b.dataset.view)));
+tabs.forEach((t, i) => {
+  t.addEventListener("click", () => show(t.getAttribute("aria-controls")));
+  t.addEventListener("keydown", e => {
+    const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+    if (d) show(tabs[(i + d + tabs.length) % tabs.length].getAttribute("aria-controls"), true);
+  });
+});
 
-document.getElementById("updated").textContent = `Results to ${fmt(DATA.updated, { day: "numeric", month: "short" })}`;
-document.getElementById("footer").textContent =
-  "Forecasts from a logistic regression on Elo ratings, expected goals and bookmaker odds, retrained every week. Not betting advice.";
-
-selectedTeam = [...DATA.table].sort((a, b) => b.Elo - a.Elo)[0].Team;
-renderFixtures();
-renderRecord();
-renderRankings();
-show("fixtures");
+document.getElementById("stamp").textContent = `Results to ${fmt(DATA.updated, { day: "numeric", month: "short" })} · updated Tue and Fri`;
+selected = DATA.table[0].Team;
+renderCoupon();
+renderResults();
+renderTable();
+flipIn(document.getElementById("coupon-body"));
 
 let resizeTimer;
 addEventListener("resize", () => {
   clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => { renderFeatured(); renderDetail(); renderXg(); }, 150);
+  resizeTimer = setTimeout(() => {
+    if (!document.getElementById("teams").hidden) { renderTeamPanel(); renderXg(); }
+    if (!document.getElementById("results").hidden) renderWeekly();
+  }, 150);
 });
 </script>
 </body>
