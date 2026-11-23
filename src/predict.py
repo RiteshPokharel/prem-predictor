@@ -146,7 +146,20 @@ def export_team_data(history: pd.DataFrame, elo) -> None:
     table["Elo"] = table.index.map(elo.ratings).round().astype(int)
     table["xG for"] = table.index.map(xg["xgf"]).round(2)
     table["xG against"] = table.index.map(xg["xga"]).round(2)
-    table = table[["P", "W", "D", "L", "GF", "GA", "GD", "Pts", "Elo", "xG for", "xG against"]]
+    log = pd.concat([
+        pd.DataFrame({"Date": games["Date"], "Team": games["HomeTeam"], "Opp": games["AwayTeam"], "Venue": "H",
+                      "GF": games["FTHG"], "GA": games["FTAG"]}),
+        pd.DataFrame({"Date": games["Date"], "Team": games["AwayTeam"], "Opp": games["HomeTeam"], "Venue": "A",
+                      "GF": games["FTAG"], "GA": games["FTHG"]}),
+    ]).sort_values("Date")
+    log["R"] = (log["GF"] > log["GA"]).map({True: "W", False: ""}) + (log["GF"] == log["GA"]).map({True: "D", False: ""})
+    log["R"] = log["R"].replace("", "L")
+    last5 = log.groupby("Team").tail(5)
+    table["Form"] = last5.groupby("Team")["R"].agg("".join)
+    table["Last5"] = last5.assign(
+        g=last5["Venue"] + " " + last5["Opp"] + " " + last5["GF"].astype(int).astype(str) + "-" + last5["GA"].astype(int).astype(str)
+    ).groupby("Team")["g"].agg("|".join)
+    table = table[["P", "W", "D", "L", "GF", "GA", "GD", "Pts", "Elo", "xG for", "xG against", "Form", "Last5"]]
     table.insert(0, "Pos", range(1, len(table) + 1))
     table.to_csv(OUT_DIR / "table.csv", index_label="Team")
 
