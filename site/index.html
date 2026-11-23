@@ -66,11 +66,11 @@
 
   /* band */
   .band { background: var(--band); color: var(--band-ink); }
-  .band-inner { padding: 0 28px; display: flex; align-items: center; gap: 32px; min-height: 64px; }
-  .name { font: 800 22px/1 var(--cond); text-transform: uppercase; letter-spacing: 0.01em; white-space: nowrap; display: flex; align-items: center; gap: 12px; }
+  .band-inner { padding: 0 28px; display: flex; align-items: center; gap: 32px; min-height: 80px; }
+  .name { font: 800 30px/1 var(--cond); text-transform: uppercase; letter-spacing: 0.01em; white-space: nowrap; display: flex; align-items: center; gap: 14px; }
   a.name { color: inherit; text-decoration: none; }
   a.name:focus-visible { outline-color: #fff; outline-offset: 4px; }
-  .logo { display: block; width: auto; height: 36px; flex: none; }
+  .logo { display: block; width: auto; height: 46px; flex: none; }
   .tabs { display: flex; gap: 2px; align-self: stretch; }
   .tab {
     font: 600 15px var(--text); color: var(--band-ink-2); background: none; border: 0; cursor: pointer;
@@ -261,8 +261,8 @@
   }
   @media (max-width: 640px) {
     .band-inner { flex-wrap: wrap; gap: 0 16px; padding: 12px 16px 0; }
-    .name { font-size: 19px; width: 100%; gap: 10px; }
-    .logo { height: 30px; }
+    .name { font-size: 24px; width: 100%; gap: 10px; }
+    .logo { height: 38px; }
     .stamp { order: 1; width: 100%; margin: 10px 0 4px; gap: 14px; }
     .upd { flex-direction: row; align-items: baseline; gap: 6px; }
     .upd + .upd { padding-left: 14px; }
