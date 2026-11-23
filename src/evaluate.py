@@ -45,16 +45,16 @@ def main() -> None:
     played = played[(ahead >= 0) & (ahead <= MAX_DAYS_AHEAD)]
     # if a match was predicted more than once before it was played, keep the earliest prediction
     played = played.sort_values("Made").drop_duplicates(["Home", "Away"], keep="first").sort_values("Played")
+    if played.empty:
+        print("None of the predicted matches have been played yet.")
+        return
+
     espn = load_espn()
     if espn is not None:
         rounds = espn.drop_duplicates(["HomeTeam", "AwayTeam"], keep="last")[["HomeTeam", "AwayTeam", "Round"]]
         played = played.merge(rounds, on=["HomeTeam", "AwayTeam"], how="left")
     else:
         played["Round"] = np.nan
-    if played.empty:
-        print("None of the predicted matches have been played yet.")
-        return
-
     probs = played[["Home win", "Draw", "Away win"]].to_numpy()
     actual = played["FTR"].map({"H": 0, "D": 1, "A": 2}).to_numpy()
     played["Correct"] = played["Pick"].map(PICK) == played["FTR"]
