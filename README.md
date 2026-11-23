@@ -24,6 +24,9 @@ python src/predict.py         # predict the next round -> predictions/
 python src/evaluate.py        # check past predictions against the real results
 ```
 
+This also runs **automatically on GitHub** every Tuesday and Friday morning (GMT), and saves the new
+predictions and track record to `predictions/`. It can be started by hand from the **Actions** tab.
+
 ## How it works
 For every match the model only uses information known **before kickoff**:
 - **Elo rating**: a running strength score per team, updated after every result
@@ -95,3 +98,4 @@ better features (e.g. xG) are likely worth more than a fancier model.
 - Added real xG (Opta, via FPL data) — accuracy 52.5% → 53.5%, now the final model
 - Added every team's matches in all competitions (European + cups) and tested fatigue and all-competition form — no real improvement, removed
 - Newest results now come from ESPN straight after each match; predictions cover the next full gameweek
+- Added a track record (first real round: 4/9 correct) and automatic twice-weekly updates on GitHub
