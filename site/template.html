@@ -177,6 +177,7 @@
   .next-match:hover { border-color: var(--red); }
   .next-match .k { font: 600 12px var(--cond); text-transform: uppercase; letter-spacing: 0.08em; color: var(--red); }
   .next-match strong { color: var(--ink); }
+  .next-match .ha { margin-left: 8px; font: 600 11px var(--cond); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
   .next-match .go { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font: 700 14px/1 var(--cond); text-transform: uppercase; letter-spacing: 0.04em; color: var(--red-ink); }
   .next-match .go svg { width: 12px; height: 12px; overflow: hidden; transition: transform 120ms ease-out; }
   .next-match:hover .go svg { transform: translateX(2px); }
@@ -199,7 +200,7 @@
   /* charts */
   svg { display: block; overflow: visible; }
   svg text { font: 13px var(--text); fill: var(--ink-2); }
-  svg .axis { font-weight: 600; fill: var(--ink); }
+  svg .axis { font: 700 16px var(--cond); text-transform: uppercase; letter-spacing: 0.06em; fill: var(--ink); }
   svg .lbl { fill: var(--ink-2); font-weight: 600; }
   svg .grid { stroke: var(--rule-soft); }
   svg .base { stroke: var(--muted); stroke-dasharray: 3 4; }
@@ -274,7 +275,7 @@
   <div class="band-inner">
     <div class="name"><img class="logo" src="logo-white.png" alt="" width="29" height="36">Premier League Match Prediction</div>
     <nav class="tabs" role="tablist" aria-label="Sections">
-      <button class="tab" role="tab" id="tab-coupon" aria-controls="coupon" aria-selected="true">Coupon</button>
+      <button class="tab" role="tab" id="tab-coupon" aria-controls="coupon" aria-selected="true">Matches</button>
       <button class="tab" role="tab" id="tab-results" aria-controls="results" aria-selected="false" tabindex="-1">Results</button>
       <button class="tab" role="tab" id="tab-teams" aria-controls="teams" aria-selected="false" tabindex="-1">Teams</button>
       <button class="tab" role="tab" id="tab-how" aria-controls="how" aria-selected="false" tabindex="-1">How it works</button>
@@ -297,7 +298,7 @@
         </table>
         <div class="sheet-foot"><p id="coupon-foot"></p></div>
       </div>
-      <aside class="stub" id="stub" aria-label="Last coupon"></aside>
+      <aside class="stub" id="stub" aria-label="Last round"></aside>
     </div>
   </section>
 
@@ -320,7 +321,7 @@
           <div id="team-body"></div>
         </div>
         <div class="sheet">
-          <div class="sheet-head"><h2>Attack and defence</h2><p>xG created and conceded per game, last 20 league matches</p></div>
+          <div class="sheet-head"><h2>Attack and defence</h2><p>Top right is best. Based on chances (xG) per game, last 20 matches.</p></div>
           <div style="padding:12px 20px 20px"><div id="xg-chart"></div></div>
         </div>
       </div>
@@ -525,8 +526,8 @@ function renderMatchDetail(td, m) {
 function renderStub() {
   const stub = document.getElementById("stub"), rec = DATA.record;
   if (!rec.length) {
-    stub.append(el("div", { class: "stub-head" }, el("h2", { text: "Last coupon" })),
-      el("div", { class: "stub-section" }, el("p", { text: "Results appear here once this coupon's matches are played." })));
+    stub.append(el("div", { class: "stub-head" }, el("h2", { text: "Last round" })),
+      el("div", { class: "stub-section" }, el("p", { text: "Results appear here once this round's matches are played." })));
     return;
   }
   const lastDates = [...new Set(rec.map(r => r.date))].sort();
@@ -536,18 +537,18 @@ function renderStub() {
   const all = rec.filter(r => r.correct).length;
   stub.append(
     el("div", { class: "stub-head" },
-      el("h2", { text: "Last coupon" }),
+      el("h2", { text: "Last round" }),
       el("div", { class: "stub-score" }, el("span", { class: "fig", text: `${hits}/${last.length}` }), el("span", { text: "picks correct" }))),
     el("ul", { class: "stub-list" }, ...last.map(r => el("li", {},
       el("span", {}, `${r.home} `, el("span", { class: "fig", text: `${r.hg}–${r.ag}` }), ` ${r.away}`),
       el("span", { class: `verdict ${r.correct ? "hit" : "miss"}`, "aria-label": r.correct ? "Correct" : "Missed" }, r.correct ? tick() : cross())))),
     el("div", { class: "stub-section" },
-      el("h3", { text: "How often the pick is right" }),
+      el("h3", { text: "How often the prediction is right" }),
       el("div", { class: "bench" },
-        ...benchRow("Live so far", all / rec.length, false),
-        ...benchRow("Tested", 0.535, false),
+        ...benchRow("This season", all / rec.length, false),
+        ...benchRow("Past seasons", 0.535, false),
         ...benchRow("Bookmakers", 0.536, true)),
-      el("p", { text: `Live: ${all} of ${rec.length} settled matches. Tested on 1,240 past matches.` })));
+      el("p", { text: `This season: ${all} of ${rec.length} matches so far. Past seasons: tested on 1,240 matches. Bookmakers: how often their favourite won.` })));
 }
 
 function benchRow(label, v, dim) {
@@ -735,8 +736,8 @@ function renderTeamPanel() {
     nextEl = el("button", { class: "next-match", type: "button" },
       el("span", { class: "k", text: "Next match" }),
       el("span", { class: "opp" }, `${fmt(next.kickoff, { weekday: "short", day: "numeric", month: "short" })} ${next.kickoff.slice(11, 16)} · `,
-        el("strong", { text: `${home ? "v" : "at"} ${home ? next.away : next.home}` })),
-      el("span", { class: "go" }, "See on coupon", el("svg:svg", { viewBox: "0 0 16 16", "aria-hidden": "true" },
+        el("strong", { text: `v ${home ? next.away : next.home}` }), el("span", { class: "ha", text: home ? "Home" : "Away" })),
+      el("span", { class: "go" }, "See match", el("svg:svg", { viewBox: "0 0 16 16", "aria-hidden": "true" },
         el("svg:path", { d: "m6 3 5 5-5 5", fill: "none", stroke: "currentColor", "stroke-width": 2 }))));
     nextEl.addEventListener("click", () => openFixture(next));
   }
@@ -757,7 +758,7 @@ function renderXg() {
   const box = document.getElementById("xg-chart"), W = box.clientWidth;
   if (!W) return;
   const teams = DATA.table.filter(t => t.xgf != null && t.xga != null);
-  const H = W < 560 ? Math.round(W * 1.2) : Math.min(400, Math.max(300, W * 0.62)), m = { t: 12, r: 12, b: 50, l: 58 };
+  const H = W < 560 ? Math.round(W * 1.2) : Math.min(460, Math.max(340, W * 0.7)), m = { t: 12, r: 12, b: 50, l: 58 };
   const xs = teams.map(t => t.xgf), ys = teams.map(t => t.xga);
   const xlo = Math.min(...xs) - 0.1, xhi = Math.max(...xs) + 0.1, ylo = Math.min(...ys) - 0.1, yhi = Math.max(...ys) + 0.1;
   const x = v => m.l + (v - xlo) / (xhi - xlo) * (W - m.l - m.r);
@@ -765,8 +766,8 @@ function renderXg() {
   const svg = el("svg:svg", { width: W, height: H, role: "img", "aria-label": "xG created against xG conceded per game, per team" });
   for (const v of niceTicks(xlo, xhi, 6)) svg.append(el("svg:line", { class: "grid", x1: x(v), x2: x(v), y1: m.t, y2: H - m.b }), el("svg:text", { x: x(v), y: H - m.b + 20, "text-anchor": "middle", text: v.toFixed(1) }));
   for (const v of niceTicks(ylo, yhi, 5)) svg.append(el("svg:line", { class: "grid", x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }), el("svg:text", { x: m.l - 10, y: y(v) + 4, "text-anchor": "end", text: v.toFixed(1) }));
-  svg.append(el("svg:text", { class: "axis", x: (m.l + W - m.r) / 2, y: H - 6, "text-anchor": "middle", text: "Better attack: more xG created per game →" }),
-    el("svg:text", { class: "axis", x: -(m.t + H - m.b) / 2, y: 16, transform: "rotate(-90)", "text-anchor": "middle", text: "Better defence: less xG conceded per game →" }));
+  svg.append(el("svg:text", { class: "axis", x: (m.l + W - m.r) / 2, y: H - 6, "text-anchor": "middle", text: "Attack →" }),
+    el("svg:text", { class: "axis", x: -(m.t + H - m.b) / 2, y: 16, transform: "rotate(-90)", "text-anchor": "middle", text: "Defence →" }));
   const pts = teams.map(t => ({ t, x: x(t.xgf), y: y(t.xga) }));
   for (const p of pts) {
     const on = p.t.Team === selected;
@@ -778,14 +779,16 @@ function renderXg() {
   }
   box.replaceChildren(svg);
   const placed = [], over = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
-  const order = [...pts].sort((a, b) => (b.t.Team === selected) - (a.t.Team === selected) || a.t.Team.localeCompare(b.t.Team));
+  // label the most crowded dots first, while there is still room next to them
+  const crowd = p => pts.filter(q => q !== p && Math.hypot(q.x - p.x, q.y - p.y) < 60).length;
+  const order = [...pts].sort((a, b) => (b.t.Team === selected) - (a.t.Team === selected) || crowd(b) - crowd(a) || a.t.Team.localeCompare(b.t.Team));
   for (const p of order) {
     const on = p.t.Team === selected;
     const label = el("svg:text", { class: "lbl", text: p.t.Team, style: on ? "fill:var(--red);font-weight:700" : null });
     svg.append(label);
     const w = label.getComputedTextLength(), h = 15;
     const spots = [];
-    for (const r of [9, 22, 36]) {
+    for (const r of [8, 12, 18]) {
       spots.push([p.x + r, p.y - h / 2, "start", r], [p.x - r - w, p.y - h / 2, "end", r],
         [p.x - w / 2, p.y - r - h, "middle", r], [p.x - w / 2, p.y + r, "middle", r],
         [p.x + r * 0.7, p.y - r * 0.7 - h, "start", r], [p.x + r * 0.7, p.y + r * 0.7, "start", r],
@@ -796,15 +799,13 @@ function renderXg() {
       return sx >= m.l && sx + w <= W - m.r && sy >= 0 && sy + h <= H - m.b
         && !pts.some(q => over(b, { x: q.x - 7, y: q.y - 7, w: 14, h: 14 })) && !placed.some(o => over(b, { x: o.x - 6, y: o.y - 1, w: o.w + 12, h: o.h + 2 }));
     };
-    const [sx, sy, anchor, r] = spots.find(fits) || spots.find(([x0, y0]) => x0 >= m.l && x0 + w <= W - m.r && y0 >= 0) || spots[0];
+    const inside = ([x0, y0]) => x0 >= m.l && x0 + w <= W - m.r && y0 >= 0 && y0 + h <= H - m.b;
+    const clearOfLabels = s => inside(s) && !placed.some(o => over({ x: s[0], y: s[1], w, h }, o));
+    const [sx, sy, anchor] = spots.find(fits) || spots.find(clearOfLabels) || spots.find(([x0, y0]) => x0 >= m.l && x0 + w <= W - m.r && y0 >= 0) || spots[0];
     placed.push({ x: sx, y: sy, w, h });
     label.setAttribute("x", anchor === "start" ? sx : anchor === "end" ? sx + w : sx + w / 2);
     label.setAttribute("y", sy + h - 3);
     label.setAttribute("text-anchor", anchor);
-    if (r > 9) {
-      const lx = Math.max(sx, Math.min(p.x, sx + w)), ly = sy + h / 2 > p.y ? sy : sy + h;
-      svg.insertBefore(el("svg:line", { x1: p.x, y1: p.y, x2: lx, y2: ly, stroke: "var(--muted)", "stroke-width": 1 }), svg.querySelector("circle"));
-    }
   }
 }
 
