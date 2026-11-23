@@ -88,6 +88,8 @@
   h2 { font: 700 22px/1.1 var(--cond); text-transform: uppercase; color: var(--red); margin: 0; }
   h3 { font: 700 17px/1.2 var(--text); margin: 0; }
   .lede { color: var(--ink-2); margin: 0; }
+  .legend { display: flex; align-items: center; gap: 10px; margin: 0; font: 600 20px/1.2 var(--cond); color: var(--ink); letter-spacing: 0.01em; }
+  .ring-key { width: 26px; height: 18px; border: 2px solid var(--red); border-radius: 50%; flex: none; }
 
   /* coupon sheet */
   .sheet { background: var(--sheet); border: 2px solid var(--red); }
@@ -112,11 +114,13 @@
   .coupon .cell { width: 84px; text-align: center; border-left: 1px solid var(--rule); padding: 0; position: relative; }
   .coupon .cell .n { position: relative; z-index: 1; font: 600 22px/1 var(--cond); font-variant-numeric: tabular-nums; color: var(--ink-2); transition: color 90ms ease-out; }
   .coupon .cell .ink { position: absolute; inset: 7px 9px; background: var(--mark); clip-path: inset(0 0 0 0); }
-  .coupon .cell.pick .n { color: var(--mark-ink); font-weight: 700; }
+  .coupon .cell.pick .n, .coupon .cell.pick .pc { color: var(--mark-ink); }
+  .coupon .cell.pick .n { font-weight: 700; }
+  .coupon .cell .pc { position: relative; z-index: 1; font: 600 13px/1 var(--cond); color: var(--ink-2); margin-left: 1px; }
   .coupon .cell .ring { position: absolute; inset: 4px 6px; border: 2px solid var(--red); border-radius: 50%; z-index: 2; pointer-events: none; }
   .coupon .verdict { width: 92px; text-align: right; font-size: 13px; font-weight: 600; white-space: nowrap; }
   .verdict.hit { color: var(--good); }
-  .verdict.miss { color: var(--muted); }
+  .verdict.miss { color: var(--red); }
   .verdict svg { display: inline-block; vertical-align: -3px; margin-right: 4px; }
   .coupon .score { width: 76px; text-align: center; font: 700 22px var(--cond); font-variant-numeric: tabular-nums; border-left: 1px solid var(--rule); }
   .coupon tbody tr.fixture { cursor: pointer; }
@@ -124,6 +128,8 @@
   .coupon tbody tr.fixture:focus-visible { outline-offset: -2px; }
   .dagger { color: var(--red); font-weight: 700; margin-left: 2px; }
   .ko-sm { display: none; }
+  .pred { display: flex; gap: 8px; align-items: baseline; margin-top: 3px; font: 700 14px/1.1 var(--cond); text-transform: uppercase; letter-spacing: 0.03em; color: var(--red-ink); }
+  .pred .k { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: var(--muted); }
   .detail td { padding: 16px 20px 20px; background: var(--hover); height: auto; }
   .detail-grid { display: grid; grid-template-columns: 1fr 240px; gap: 28px; align-items: start; }
   .facts { display: grid; grid-template-columns: 1fr auto auto; gap: 6px 16px; font-size: 13px; }
@@ -171,9 +177,9 @@
   .next-match:hover { border-color: var(--red); }
   .next-match .k { font: 600 12px var(--cond); text-transform: uppercase; letter-spacing: 0.08em; color: var(--red); }
   .next-match strong { color: var(--ink); }
-  .next-match .odds { display: flex; gap: 12px; }
-  .next-match .odds b { font-size: 17px; color: var(--ink); }
-  .next-match .go { margin-left: auto; font-size: 13px; color: var(--red-ink); text-decoration: underline; text-underline-offset: 3px; }
+  .next-match .go { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font: 700 14px/1 var(--cond); text-transform: uppercase; letter-spacing: 0.04em; color: var(--red-ink); }
+  .next-match .go svg { width: 12px; height: 12px; overflow: hidden; transition: transform 120ms ease-out; }
+  .next-match:hover .go svg { transform: translateX(2px); }
   .team-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
   .team-figs { display: flex; gap: 28px; }
   .team-figs div { font-size: 12px; color: var(--muted); font-weight: 600; }
@@ -296,7 +302,7 @@
   </section>
 
   <section id="results" role="tabpanel" aria-labelledby="tab-results" hidden>
-    <div class="page-title"><h1>Results</h1><p class="lede" id="results-sub"></p></div>
+    <div class="page-title"><h1>Results</h1><p class="legend" id="results-sub"></p></div>
     <div id="results-weekly"></div>
     <div id="results-sheets"></div>
   </section>
@@ -439,7 +445,7 @@ function cells(m, { result = null } = {}) {
     const v = whole[i];
     const td = el("td", { class: `cell${key === pick ? " pick" : ""}`, "data-final": v, "aria-label": `${name} ${v}%${key === pick ? ", model's pick" : ""}` });
     if (key === pick) td.append(el("span", { class: "ink" }));
-    td.append(el("span", { class: "n", text: v }));
+    td.append(el("span", { class: "n", text: v }), el("span", { class: "pc", text: "%" }));
     if (result === key) td.append(el("span", { class: "ring", title: "Result" }));
     return td;
   });
@@ -466,7 +472,9 @@ function renderCoupon() {
     const row = el("tr", { class: "fixture", tabindex: 0, "aria-expanded": "false" },
       el("td", { class: "no", text: n }), ko,
       el("td", { class: "match" }, m.home, el("span", { class: "v", text: "v" }), m.away,
-        el("span", { class: "ko-sm", text: `${m.kickoff.slice(11, 16)}${m.odds ? "" : " †"}` })),
+        el("span", { class: "ko-sm", text: `${m.kickoff.slice(11, 16)}${m.odds ? "" : " †"}` }),
+        el("span", { class: "pred" }, el("span", { class: "k", text: "Prediction" }),
+          el("span", { text: { H: `${m.home} win`, D: "Draw", A: `${m.away} win` }[pickOf(m)] }))),
       ...cells(m));
     const detail = el("tr", { class: "detail", hidden: true }, el("td", { colspan: 6 }));
     const setOpen = open => {
@@ -580,8 +588,7 @@ function renderResults() {
   const rec = DATA.record, box = document.getElementById("results-sheets");
   const sub = document.getElementById("results-sub");
   if (!rec.length) { sub.textContent = "Nothing settled yet. Results appear after the first matches are played."; return; }
-  const hits = rec.filter(r => r.correct).length;
-  sub.textContent = `${hits} of ${rec.length} picks correct so far. The circle marks what actually happened.`;
+  sub.replaceChildren(el("span", { class: "ring-key", "aria-hidden": "true" }), "The circle shows what actually happened");
   const byDay = {};
   for (const r of rec) (byDay[r.date] ??= []).push(r);
   for (const d of Object.keys(byDay).sort().reverse()) {
@@ -723,16 +730,13 @@ function renderTeamPanel() {
   const next = DATA.fixtures.find(f => f.home === selected || f.away === selected);
   let nextEl = null;
   if (next) {
-    const home = next.home === selected, w = wholePercents([next.pH, next.pD, next.pA]);
-    const [win, draw, loss] = home ? w : [w[2], w[1], w[0]];
+    const home = next.home === selected;
     nextEl = el("button", { class: "next-match", type: "button" },
       el("span", { class: "k", text: "Next match" }),
       el("span", { class: "opp" }, `${fmt(next.kickoff, { weekday: "short", day: "numeric", month: "short" })} ${next.kickoff.slice(11, 16)} · `,
         el("strong", { text: `${home ? "v" : "at"} ${home ? next.away : next.home}` })),
-      el("span", { class: "odds" },
-        el("span", {}, "Win ", el("b", { class: "fig", text: win })), el("span", {}, "Draw ", el("b", { class: "fig", text: draw })),
-        el("span", {}, "Lose ", el("b", { class: "fig", text: loss }))),
-      el("span", { class: "go", text: "See on coupon" }));
+      el("span", { class: "go" }, "See on coupon", el("svg:svg", { viewBox: "0 0 16 16", "aria-hidden": "true" },
+        el("svg:path", { d: "m6 3 5 5-5 5", fill: "none", stroke: "currentColor", "stroke-width": 2 }))));
     nextEl.addEventListener("click", () => openFixture(next));
   }
   document.getElementById("team-body").replaceChildren(
