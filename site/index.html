@@ -408,6 +408,11 @@
       </table>
       <p>Log loss scores the percentages themselves, lower is better. The model matches the bookmakers on picks and sits just behind them on the percentages.</p>
 
+      <h2>Why it never predicts a draw</h2>
+      <p>Roughly one in four Premier League matches ends level: 24.7% of the 1,240 matches in the test. Yet in none of them was the draw the single most likely outcome. Not for this model, and not for the bookmakers, whose draw probability never rose above 32%.</p>
+      <p>This isn't a blind spot. A draw is most likely when two teams are evenly matched, but evenly matched also means each win stays close to a third, so the draw is almost never the favourite. A model that maximises accuracy always picks the most likely result, so it never picks a draw, and it accepts that about a quarter of matches will be wrong whatever it does.</p>
+      <p>That's why accuracy alone is a weak test of a forecaster. The draw chance still appears on every match, and the log loss scores whether those percentages are right, not just whether the top pick came in.</p>
+
       <h2>What didn't help</h2>
       <ul>
         <li>Random forests, gradient boosting, nearest neighbours and a small neural network all scored worse than logistic regression.</li>
