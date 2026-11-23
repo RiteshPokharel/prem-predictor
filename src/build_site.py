@@ -25,7 +25,7 @@ def main() -> None:
     record[["home", "away"]] = record["Match"].str.split(" v ", n=1, expand=True)
     record[["hg", "ag"]] = record["Score"].str.split("-", expand=True).astype(int)
     played = [
-        {"date": r.Date, "home": r.home, "away": r.away, "hg": r.hg, "ag": r.ag,
+        {"date": r.Date, "gw": None if pd.isna(r.Gameweek) else int(r.Gameweek), "home": r.home, "away": r.away, "hg": r.hg, "ag": r.ag,
          "pH": h, "pD": d, "pA": a, "result": r.Result, "pick": r.Pick, "correct": r.Correct == "yes"}
         for r, h, d, a in zip(record.itertuples(), percent(record["Home win"]),
                               percent(record["Draw"]), percent(record["Away win"]))

@@ -186,6 +186,9 @@
   @keyframes nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(4px); } }
   .team-pick .step.nudge svg { animation: nudge 600ms ease-in-out 1000ms 2; }
   .team-pick .step svg { width: 16px; height: 16px; }
+  .team-pick .step:disabled { opacity: 0.3; cursor: default; background: none; border-color: var(--rule); }
+  .gw-pick { border-bottom: 0; }
+  #results-sheets > .sheet:first-child { margin-top: 24px; }
   .team-title { flex: 1; min-width: 0; text-align: center; }
   .team-name { font: 800 32px/1 var(--cond); text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .team-sub { color: var(--ink-2); font-size: 13px; margin-top: 4px; }
@@ -284,6 +287,9 @@
     .settled th:nth-child(2) { width: 42px; }
     .settled th:nth-child(3), .settled th:nth-child(4), .settled th:nth-child(5) { width: 44px; }
     .settled .cell { width: auto; }
+    .settled .cell .n { font-size: 17px; }
+    .settled .cell .pc { font-size: 10px; }
+    .settled .cell .ink { inset: 8px 3px; }
     .settled td.match { white-space: normal; overflow-wrap: anywhere; }
     .hide-sm { display: none; }
     .team-figs { gap: 18px; }
@@ -332,6 +338,13 @@
   <section id="results" role="tabpanel" aria-labelledby="tab-results" hidden>
     <div class="page-title"><h1>Results</h1><p class="legend" id="results-sub"></p></div>
     <div id="results-weekly"></div>
+    <div class="sheet" id="gw-sheet" hidden>
+      <div class="team-pick gw-pick">
+        <button class="step" id="gw-prev" type="button" aria-label="Earlier gameweek"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+        <div class="team-title" aria-live="polite"><div class="team-name" id="gw-name"></div><div class="team-sub" id="gw-sub"></div></div>
+        <button class="step" id="gw-next" type="button" aria-label="Later gameweek"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+      </div>
+    </div>
     <div id="results-sheets"></div>
   </section>
 
@@ -618,17 +631,40 @@ function flipIn(scope) {
 }
 
 /* ---------- results ---------- */
+// Results are shown one gameweek at a time (newest first), so the page never grows past one round.
+let gwList = [], gwIdx = 0;
+const gwKey = r => r.gw ?? `w${weekOf(r.date)}`;
 function renderResults() {
-  const rec = DATA.record, box = document.getElementById("results-sheets");
-  const sub = document.getElementById("results-sub");
+  const rec = DATA.record, sub = document.getElementById("results-sub");
   if (!rec.length) { sub.textContent = "Nothing settled yet. Results appear after the first matches are played."; return; }
   sub.replaceChildren(el("span", { class: "ring-key", "aria-hidden": "true" }), "The circle shows what actually happened");
+  const groups = new Map();
+  for (const r of [...rec].sort((a, b) => a.date.localeCompare(b.date))) {
+    if (!groups.has(gwKey(r))) groups.set(gwKey(r), []);
+    groups.get(gwKey(r)).push(r);
+  }
+  gwList = [...groups.values()];
+  gwIdx = gwList.length - 1;
+  document.getElementById("gw-sheet").hidden = false;
+  document.getElementById("gw-prev").addEventListener("click", () => showGameweek(gwIdx - 1));
+  document.getElementById("gw-next").addEventListener("click", () => showGameweek(gwIdx + 1));
+  showGameweek(gwIdx);
+  renderWeekly();
+}
+
+function showGameweek(i) {
+  gwIdx = Math.max(0, Math.min(gwList.length - 1, i));
+  const rows = gwList[gwIdx], hits = rows.filter(r => r.correct).length;
+  document.getElementById("gw-name").textContent = rows[0].gw != null ? `Gameweek ${rows[0].gw}` : `Week of ${fmt(weekOf(rows[0].date), { day: "numeric", month: "short" })}`;
+  document.getElementById("gw-sub").textContent = `${hits} of ${rows.length} predictions correct`;
+  document.getElementById("gw-prev").disabled = gwIdx === 0;
+  document.getElementById("gw-next").disabled = gwIdx === gwList.length - 1;
   const byDay = {};
-  for (const r of rec) (byDay[r.date] ??= []).push(r);
-  for (const d of Object.keys(byDay).sort().reverse()) {
-    const rows = byDay[d], h = rows.filter(r => r.correct).length;
-    box.append(el("div", { class: "sheet" },
-      el("div", { class: "sheet-head" }, el("h2", { text: fmt(d, { weekday: "long", day: "numeric", month: "long" }) }), el("p", { text: `${h} of ${rows.length} correct` })),
+  for (const r of rows) (byDay[r.date] ??= []).push(r);
+  document.getElementById("results-sheets").replaceChildren(...Object.keys(byDay).sort().reverse().map(d => {
+    const dayRows = byDay[d], h = dayRows.filter(r => r.correct).length;
+    return el("div", { class: "sheet" },
+      el("div", { class: "sheet-head" }, el("h2", { text: fmt(d, { weekday: "long", day: "numeric", month: "long" }) }), el("p", { text: `${h} of ${dayRows.length} correct` })),
       el("table", { class: "coupon settled" },
         el("thead", {}, el("tr", {},
           el("th", { scope: "col", class: "left" , text: "Match" }), el("th", { scope: "col", text: "Score" }),
@@ -636,13 +672,12 @@ function renderResults() {
           el("th", { scope: "col" }, el("span", { class: "key", text: "X" }), "Draw"),
           el("th", { scope: "col" }, el("span", { class: "key", text: "2" }), "Away"),
           el("th", { scope: "col", class: "hide-sm" }))),
-        el("tbody", {}, ...rows.map(r => el("tr", {},
+        el("tbody", {}, ...dayRows.map(r => el("tr", {},
           el("td", { class: "match" }, r.home, el("span", { class: "v", text: "v" }), r.away),
           el("td", { class: "score", text: `${r.hg}–${r.ag}` }),
           ...cells(r, { result: { Home: "H", Draw: "D", Away: "A" }[r.result] }),
-          el("td", { class: `verdict ${r.correct ? "hit" : "miss"}` }, r.correct ? tick() : cross(), r.correct ? "Correct" : "Missed")))))));
-  }
-  renderWeekly();
+          el("td", { class: `verdict ${r.correct ? "hit" : "miss"}` }, r.correct ? tick() : cross(), r.correct ? "Correct" : "Missed"))))));
+  }));
 }
 
 function renderWeekly() {

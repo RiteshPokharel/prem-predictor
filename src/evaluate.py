@@ -11,25 +11,27 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from features import load_matches
+from features import load_espn, load_matches
 
 warnings.filterwarnings("ignore", category=pd.errors.PerformanceWarning)
 
 PRED_DIR = Path(__file__).resolve().parent.parent / "predictions"
 PICK = {"Home": "H", "Draw": "D", "Away": "A"}
+# A prediction only counts for a match played within this many days of it being made.
+# Stops a fixture predicted last season being scored against this season's result.
+MAX_DAYS_AHEAD = 21
 
 
 def load_predictions() -> pd.DataFrame:
     frames = []
     for path in sorted(PRED_DIR.glob("predictions_*.csv")):
         p = pd.read_csv(path)
-        p["file"] = path.name
+        p["Made"] = pd.Timestamp(path.stem.removeprefix("predictions_"))
         frames.append(p)
     p = pd.concat(frames, ignore_index=True)
     for col in ("Home win", "Draw", "Away win"):
         p[col] = p[col].str.rstrip("%").astype(float) / 100
-    # if a match was predicted in more than one file, keep the earliest prediction
-    return p.drop_duplicates(["Home", "Away"], keep="first")
+    return p
 
 
 def main() -> None:
@@ -39,6 +41,16 @@ def main() -> None:
     results = results.rename(columns={"Date": "Played"})
     played = preds.merge(results[["Played", "HomeTeam", "AwayTeam", "FTHG", "FTAG", "FTR"]],
                          left_on=["Home", "Away"], right_on=["HomeTeam", "AwayTeam"])
+    ahead = (played["Played"] - played["Made"]).dt.days
+    played = played[(ahead >= 0) & (ahead <= MAX_DAYS_AHEAD)]
+    # if a match was predicted more than once before it was played, keep the earliest prediction
+    played = played.sort_values("Made").drop_duplicates(["Home", "Away"], keep="first").sort_values("Played")
+    espn = load_espn()
+    if espn is not None:
+        rounds = espn.drop_duplicates(["HomeTeam", "AwayTeam"], keep="last")[["HomeTeam", "AwayTeam", "Round"]]
+        played = played.merge(rounds, on=["HomeTeam", "AwayTeam"], how="left")
+    else:
+        played["Round"] = np.nan
     if played.empty:
         print("None of the predicted matches have been played yet.")
         return
@@ -50,6 +62,7 @@ def main() -> None:
 
     table = pd.DataFrame({
         "Date": played["Played"].dt.strftime("%Y-%m-%d"),
+        "Gameweek": played["Round"].astype("Int64"),
         "Match": played["Home"] + " v " + played["Away"],
         "Score": played["FTHG"].astype(int).astype(str) + "-" + played["FTAG"].astype(int).astype(str),
         "Pick": played["Pick"],
