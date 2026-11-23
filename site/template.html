@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Premier League Forecast</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7;
+    --surface: #fcfcfb;
+    --ink: #0b0b0b;
+    --ink-2: #52514e;
+    --muted: #898781;
+    --grid: #e1e0d9;
+    --axis: #c3c2b7;
+    --border: rgba(11, 11, 11, 0.10);
+    --home: #2a78d6;
+    --draw: #c3c2b7;
+    --draw-ink: #0b0b0b;
+    --away: #e34948;
+    --good: #006300;
+    --bad: #d03b3b;
+    --hover: rgba(11, 11, 11, 0.035);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --page: #0d0d0d;
+      --surface: #1a1a19;
+      --ink: #f0efec;
+      --ink-2: #c3c2b7;
+      --muted: #898781;
+      --grid: #2c2c2a;
+      --axis: #383835;
+      --border: rgba(255, 255, 255, 0.10);
+      --home: #3987e5;
+      --draw: #5f5e5a;
+      --draw-ink: #f0efec;
+      --away: #e66767;
+      --good: #0ca30c;
+      --bad: #e66767;
+      --hover: rgba(255, 255, 255, 0.04);
+    }
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 0 16px; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  header { border-bottom: 1px solid var(--border); background: var(--surface); }
+  header .wrap { display: flex; align-items: center; justify-content: space-between; height: 56px; gap: 16px; }
+  .brand { font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; }
+  .brand span { color: var(--muted); font-weight: 400; }
+  nav { display: flex; gap: 4px; }
+  nav button {
+    font: inherit; color: var(--ink-2); background: none; border: 0; cursor: pointer;
+    padding: 6px 10px; border-radius: 6px;
+  }
+  nav button:hover { background: var(--hover); color: var(--ink); }
+  nav button[aria-selected="true"] { color: var(--ink); font-weight: 600; }
+
+  main.wrap { padding-top: 40px; padding-bottom: 64px; }
+  .view[hidden] { display: none; }
+  .head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+  h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+  h2 { font-size: 15px; font-weight: 600; margin: 0; }
+  .sub { color: var(--muted); font-size: 13px; }
+
+  .legend { display: flex; gap: 16px; color: var(--ink-2); font-size: 12px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .card-note { color: var(--muted); font-size: 12px; margin: 10px 0 0; }
+
+  .day { color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; margin: 24px 0 6px; }
+  .day:first-child { margin-top: 0; }
+  .match {
+    display: grid; grid-template-columns: 48px 1fr minmax(200px, 300px) 1fr; align-items: center; gap: 14px;
+    padding: 10px 8px; border-radius: 8px;
+  }
+  .match:hover { background: var(--hover); }
+  .time { color: var(--ink-2); font-size: 13px; }
+  .team { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .team.home { text-align: right; }
+  .team.pick { color: var(--ink); font-weight: 600; }
+  .score { font-weight: 600; color: var(--ink); }
+
+  .bar { display: flex; gap: 2px; height: 24px; }
+  .bar div {
+    display: flex; align-items: center; justify-content: center; min-width: 0;
+    color: #fff; font-size: 12px; font-weight: 500; transition: opacity .15s;
+  }
+  .bar div:first-child { border-radius: 6px 0 0 6px; }
+  .bar div:last-child { border-radius: 0 6px 6px 0; }
+  .bar .h { background: var(--home); }
+  .bar .d { background: var(--draw); color: var(--draw-ink); }
+  .bar .a { background: var(--away); }
+  .bar .faded { opacity: 0.25; }
+  .bar .tight { color: transparent !important; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; }
+  .stat .label { color: var(--ink-2); font-size: 13px; }
+  .stat .value { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; margin-top: 2px; }
+  .stat .hint { color: var(--muted); font-size: 12px; }
+
+  .result { display: grid; grid-template-columns: 1fr 52px 1fr minmax(160px, 240px) 64px; align-items: center; gap: 14px; padding: 10px 8px; border-radius: 8px; }
+  .result:hover { background: var(--hover); }
+  .result .score { text-align: center; }
+  .verdict { font-size: 12px; font-weight: 500; text-align: right; }
+  .verdict.hit { color: var(--good); }
+  .verdict.miss { color: var(--muted); }
+
+  select {
+    font: inherit; color: var(--ink); background: var(--page); border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 28px 6px 10px; cursor: pointer; appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+    background-position: calc(100% - 15px) 52%, calc(100% - 10px) 52%;
+    background-size: 5px 5px; background-repeat: no-repeat;
+  }
+
+  svg { display: block; overflow: visible; }
+  svg text { font: 11px system-ui, -apple-system, "Segoe UI", sans-serif; fill: var(--muted); }
+  svg .label { fill: var(--ink-2); }
+  svg .gridline { stroke: var(--grid); stroke-width: 1; }
+  svg .ref { stroke: var(--axis); stroke-width: 1; stroke-dasharray: 4 4; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { color: var(--muted); font-weight: 500; text-align: right; padding: 8px 6px; border-bottom: 1px solid var(--border); }
+  td { text-align: right; padding: 7px 6px; border-bottom: 1px solid var(--border); }
+  th:nth-child(2), td:nth-child(2) { text-align: left; }
+  th:first-child, td:first-child { color: var(--muted); width: 28px; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: var(--hover); }
+  tbody tr.selected td { background: var(--hover); font-weight: 600; }
+  td.pts { font-weight: 600; }
+
+  #tip {
+    position: fixed; pointer-events: none; z-index: 10; opacity: 0; transition: opacity .1s;
+    background: var(--surface); color: var(--ink); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; font-size: 12px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); white-space: nowrap;
+  }
+  #tip b { font-weight: 600; }
+  #tip span { color: var(--ink-2); }
+
+  footer.wrap { color: var(--muted); font-size: 12px; padding-bottom: 40px; }
+
+  @media (max-width: 640px) {
+    header .wrap { height: auto; padding: 12px 16px; flex-direction: column; align-items: flex-start; gap: 6px; }
+    nav { margin-left: -10px; }
+    main.wrap { padding-top: 24px; }
+    .match { grid-template-columns: 1fr auto 1fr; grid-template-areas: "home time away" "bar bar bar"; gap: 6px 10px; }
+    .match .time { grid-area: time; text-align: center; }
+    .match .home { grid-area: home; text-align: left; }
+    .match .away { grid-area: away; text-align: right; }
+    .match .bar { grid-area: bar; }
+    .result { grid-template-columns: 1fr auto 1fr; grid-template-areas: "home score away" "bar bar verdict"; gap: 6px 10px; }
+    .result .home { grid-area: home; text-align: left; }
+    .result .score { grid-area: score; }
+    .result .away { grid-area: away; text-align: right; }
+    .result .bar { grid-area: bar; }
+    .result .verdict { grid-area: verdict; }
+    .stats { gap: 8px; }
+    .stat { padding: 12px; }
+    .stat .label, .stat .hint { font-size: 11px; }
+    .stat .value { font-size: 22px; }
+    .card { padding: 16px; }
+    .hide-sm { display: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand">Premier League Forecast <span>· 2026/27</span></div>
+    <nav>
+      <button data-view="fixtures" aria-selected="true">Fixtures</button>
+      <button data-view="record" aria-selected="false">Track record</button>
+      <button data-view="teams" aria-selected="false">Teams</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="view" id="fixtures">
+    <div class="head">
+      <div>
+        <h1>Upcoming matches</h1>
+        <div class="sub" id="fixtures-sub"></div>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--home)"></i>Home win</span>
+        <span><i style="background:var(--draw)"></i>Draw</span>
+        <span><i style="background:var(--away)"></i>Away win</span>
+      </div>
+    </div>
+    <div class="card" id="fixture-list"></div>
+    <p class="card-note" id="fixtures-note"></p>
+  </section>
+
+  <section class="view" id="record" hidden>
+    <div class="head">
+      <div>
+        <h1>Track record</h1>
+        <div class="sub">Every prediction, checked against the real result.</div>
+      </div>
+    </div>
+    <div class="stats" id="record-stats"></div>
+    <div class="card" id="record-weekly" hidden>
+      <div class="card-head"><h2>Correct picks by week</h2></div>
+      <div id="weekly-chart"></div>
+      <p class="card-note">Dashed line: 53.5%, the accuracy the model reached in testing on past seasons.</p>
+    </div>
+    <div class="card" id="record-list"></div>
+  </section>
+
+  <section class="view" id="teams" hidden>
+    <div class="head">
+      <div>
+        <h1>Teams</h1>
+        <div class="sub">Strength ratings and chance quality behind the predictions.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <h2>Strength rating</h2>
+        <select id="team-select" aria-label="Team"></select>
+      </div>
+      <div id="elo-chart"></div>
+      <p class="card-note">Elo rating since the start of last season. 1500 is an average Premier League team.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Attack and defence</h2></div>
+      <div id="xg-chart"></div>
+      <p class="card-note">Expected goals per game over each team's last 20 league matches. Top right is best.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Table</h2></div>
+      <table>
+        <thead><tr>
+          <th></th><th>Team</th><th>P</th><th class="hide-sm">W</th><th class="hide-sm">D</th><th class="hide-sm">L</th>
+          <th>GD</th><th>Pts</th><th>Rating</th>
+        </tr></thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap" id="footer"></footer>
+<div id="tip" role="tooltip"></div>
+
+<script>const DATA = /*DATA*/null;</script>
+<script>
+const SVG = "http://www.w3.org/2000/svg";
+const OUTCOMES = [["pH", "h", "Home win"], ["pD", "d", "Draw"], ["pA", "a", "Away win"]];
+
+function el(tag, attrs = {}, ...children) {
+  const node = tag.startsWith("svg:") ? document.createElementNS(SVG, tag.slice(4)) : document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "text") node.textContent = v;
+    else if (k === "class") node.setAttribute("class", v);
+    else node.setAttribute(k, v);
+  }
+  for (const c of children) if (c) node.append(c);
+  return node;
+}
+
+const pct = p => `${Math.round(p * 100)}%`;
+const parseDay = s => new Date(`${s.slice(0, 10)}T12:00:00Z`);
+const dayName = s => parseDay(s).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+const shortDate = s => parseDay(s).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+
+const tip = document.getElementById("tip");
+function showTip(event, html) {
+  tip.innerHTML = html;
+  tip.style.opacity = 1;
+  const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = event.clientX + pad, y = event.clientY - h - pad;
+  if (x + w > window.innerWidth - 8) x = event.clientX - w - pad;
+  if (y < 8) y = event.clientY + pad;
+  tip.style.left = `${x}px`;
+  tip.style.top = `${y}px`;
+}
+const hideTip = () => { tip.style.opacity = 0; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+function probBar(m, actual) {
+  const bar = el("div", { class: "bar" });
+  for (const [key, cls, name] of OUTCOMES) {
+    const seg = el("div", { class: cls, style: `flex: ${m[key]} 1 0` }, el("span", { text: pct(m[key]) }));
+    if (actual && actual !== name.split(" ")[0]) seg.classList.add("faded");
+    seg.addEventListener("mousemove", e => showTip(e, `<b>${esc(name)}</b> <span>${pct(m[key])}</span>`));
+    seg.addEventListener("mouseleave", hideTip);
+    bar.append(seg);
+  }
+  return bar;
+}
+
+const favourite = m => m.pH >= m.pA ? "home" : "away";
+
+// hide a percentage when its segment is too narrow to show it fully
+function fitLabels() {
+  for (const seg of document.querySelectorAll(".bar div")) {
+    seg.classList.toggle("tight", seg.firstChild.offsetWidth > seg.clientWidth - 6);
+  }
+}
+
+/* ---------- Fixtures ---------- */
+function renderFixtures() {
+  const list = document.getElementById("fixture-list");
+  const rounds = [...new Set(DATA.fixtures.map(m => m.round).filter(r => r))];
+  const zone = DATA.fixtures.length && DATA.fixtures[0].kickoff.endsWith("+01:00") ? "BST" : "GMT";
+  document.getElementById("fixtures-sub").textContent =
+    `${rounds.length ? "Gameweek " + rounds.join(" & ") + " · " : ""}UK time (${zone}) · results up to ${shortDate(DATA.updated)}`;
+
+  let lastDay = null;
+  for (const m of DATA.fixtures) {
+    const day = m.kickoff.slice(0, 10);
+    if (day !== lastDay) { list.append(el("div", { class: "day", text: dayName(day) })); lastDay = day; }
+    const time = el("div", { class: "time num", text: m.kickoff.slice(11, 16) });
+    const fav = favourite(m);
+    list.append(el("div", { class: "match" },
+      time,
+      el("div", { class: `team home ${fav === "home" ? "pick" : ""}`, text: m.home }),
+      probBar(m),
+      el("div", { class: `team away ${fav === "away" ? "pick" : ""}`, text: m.away }),
+    ));
+  }
+  const withOdds = DATA.fixtures.filter(m => m.odds), without = DATA.fixtures.filter(m => !m.odds);
+  const names = list => list.map(m => `${m.home} v ${m.away}`).join(", ");
+  document.getElementById("fixtures-note").textContent =
+    !without.length ? "" :
+    !withOdds.length ? "Bookmaker odds aren't out yet, so these forecasts use ratings and xG only. They'll sharpen once odds are published." :
+    withOdds.length <= without.length
+      ? `Bookmaker odds are only out for ${names(withOdds)} so far. The others use ratings and xG only and will sharpen once odds are published.`
+      : `Bookmaker odds aren't out yet for ${names(without)}, so those use ratings and xG only.`;
+}
+
+/* ---------- Track record ---------- */
+function renderRecord() {
+  const rec = DATA.record;
+  const stats = document.getElementById("record-stats");
+  const list = document.getElementById("record-list");
+  if (!rec.length) { list.append(el("div", { class: "sub", text: "No predicted matches have been played yet." })); return; }
+
+  const hits = rec.filter(r => r.correct).length;
+  const stat = (label, value, hint) => el("div", { class: "stat" },
+    el("div", { class: "label", text: label }), el("div", { class: "value num", text: value }), el("div", { class: "hint", text: hint }));
+  stats.append(
+    stat("Picked correctly", pct(hits / rec.length), `${hits} of ${rec.length} matches`),
+    stat("Expected", "53.5%", "from testing on past seasons"),
+    stat("Matches checked", String(rec.length), `since ${shortDate(rec.reduce((a, r) => r.date < a ? r.date : a, rec[0].date))}`),
+  );
+
+  const sorted = [...rec].sort((a, b) => b.date.localeCompare(a.date));
+  let lastDay = null;
+  for (const r of sorted) {
+    if (r.date !== lastDay) { list.append(el("div", { class: "day", text: dayName(r.date) })); lastDay = r.date; }
+    list.append(el("div", { class: "result" },
+      el("div", { class: "team home", text: r.home }),
+      el("div", { class: "score num", text: `${r.hg} – ${r.ag}` }),
+      el("div", { class: "team away", text: r.away }),
+      probBar(r, r.result),
+      el("div", { class: `verdict ${r.correct ? "hit" : "miss"}`, text: r.correct ? "Correct" : "Missed" }),
+    ));
+  }
+  renderWeekly();
+}
+
+function weekStart(d) {
+  const date = parseDay(d);
+  date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7));
+  return date.toISOString().slice(0, 10);
+}
+
+function renderWeekly() {
+  const weeks = {};
+  for (const r of DATA.record) (weeks[weekStart(r.date)] ??= []).push(r.correct);
+  const rows = Object.entries(weeks).sort().map(([w, v]) => ({ w, rate: v.filter(Boolean).length / v.length, n: v.length }));
+  if (rows.length < 2) return;
+  document.getElementById("record-weekly").hidden = false;
+
+  const box = document.getElementById("weekly-chart");
+  const W = box.clientWidth, H = 180, m = { t: 8, r: 8, b: 24, l: 36 };
+  if (!W) return;
+  const svg = el("svg:svg", { width: W, height: H });
+  const y = v => m.t + (1 - v) * (H - m.t - m.b);
+  for (const v of [0, 0.25, 0.5, 0.75, 1]) {
+    svg.append(el("svg:line", { class: "gridline", x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }));
+    svg.append(el("svg:text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end", text: pct(v) }));
+  }
+  const step = (W - m.l - m.r) / rows.length, bw = Math.min(28, step * 0.6);
+  rows.forEach((r, i) => {
+    const cx = m.l + step * (i + 0.5);
+    const bar = el("svg:path", { d: roundedBar(cx - bw / 2, y(r.rate), bw, y(0) - y(r.rate), 4), fill: "var(--home)" });
+    bar.addEventListener("mousemove", e => showTip(e, `<b>Week of ${esc(shortDate(r.w))}</b><br><span>${pct(r.rate)} correct · ${r.n} matches</span>`));
+    bar.addEventListener("mouseleave", hideTip);
+    svg.append(bar, el("svg:text", { x: cx, y: H - 6, "text-anchor": "middle",
+      text: parseDay(r.w).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }) }));
+  });
+  svg.append(el("svg:line", { class: "ref", x1: m.l, x2: W - m.r, y1: y(0.535), y2: y(0.535) }));
+  box.replaceChildren(svg);
+}
+
+function roundedBar(x, y, w, h, r) {
+  r = Math.min(r, h, w / 2);
+  return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
+}
+
+/* ---------- Teams ---------- */
+let selectedTeam = null;
+
+function niceTicks(lo, hi, count) {
+  const raw = (hi - lo) / count, mag = 10 ** Math.floor(Math.log10(raw));
+  const step = [1, 2, 5, 10].map(s => s * mag).find(s => s >= raw);
+  const ticks = [];
+  for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) ticks.push(+v.toFixed(10));
+  return ticks;
+}
+
+function renderElo() {
+  const box = document.getElementById("elo-chart");
+  const rows = DATA.ratings[selectedTeam] || [];
+  if (!rows.length) { box.replaceChildren(); return; }
+  const pts = rows.map(([d, season, elo]) => ({ t: parseDay(d).getTime(), d, season, elo }));
+  const W = box.clientWidth, H = 240, m = { t: 12, r: 44, b: 26, l: 40 };
+  if (!W) return;
+  const t0 = pts[0].t, t1 = pts[pts.length - 1].t;
+  const lo = Math.min(1500, ...pts.map(p => p.elo)) - 15, hi = Math.max(1500, ...pts.map(p => p.elo)) + 15;
+  const x = t => m.l + (t - t0) / (t1 - t0 || 1) * (W - m.l - m.r);
+  const y = v => m.t + (hi - v) / (hi - lo) * (H - m.t - m.b);
+  const svg = el("svg:svg", { width: W, height: H });
+
+  for (const v of niceTicks(lo, hi, 4)) {
+    svg.append(el("svg:line", { class: "gridline", x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }));
+    svg.append(el("svg:text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end", text: v.toLocaleString("en-GB") }));
+  }
+  const start = new Date(t0);
+  for (let d = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 1)); d.getTime() <= t1; d.setUTCMonth(d.getUTCMonth() + 2)) {
+    const label = d.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" }) + (d.getUTCMonth() < 2 ? ` ’${String(d.getUTCFullYear()).slice(2)}` : "");
+    svg.append(el("svg:text", { x: x(d.getTime()), y: H - 6, "text-anchor": "middle", text: label }));
+  }
+  svg.append(el("svg:line", { class: "ref", x1: m.l, x2: W - m.r, y1: y(1500), y2: y(1500) }));
+  svg.append(el("svg:text", { x: W - m.r + 6, y: y(1500) + 4, text: "Average" }));
+
+  for (const season of [...new Set(pts.map(p => p.season))]) {
+    const seg = pts.filter(p => p.season === season);
+    svg.append(el("svg:path", {
+      d: seg.map((p, i) => `${i ? "L" : "M"}${x(p.t).toFixed(1)},${y(p.elo).toFixed(1)}`).join(""),
+      fill: "none", stroke: "var(--home)", "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round",
+    }));
+  }
+  const last = pts[pts.length - 1];
+  svg.append(el("svg:circle", { cx: x(last.t), cy: y(last.elo), r: 4, fill: "var(--home)", stroke: "var(--surface)", "stroke-width": 2 }));
+  svg.append(el("svg:text", { class: "label", x: x(last.t) + 8, y: y(last.elo) + 4, text: Math.round(last.elo) }));
+
+  const cross = el("svg:line", { stroke: "var(--axis)", y1: m.t, y2: H - m.b, visibility: "hidden" });
+  const dot = el("svg:circle", { r: 4, fill: "var(--home)", stroke: "var(--surface)", "stroke-width": 2, visibility: "hidden" });
+  const hit = el("svg:rect", { x: m.l, y: 0, width: W - m.l - m.r, height: H, fill: "transparent" });
+  hit.addEventListener("mousemove", e => {
+    const mx = e.clientX - svg.getBoundingClientRect().left;
+    const p = pts.reduce((a, b) => Math.abs(x(b.t) - mx) < Math.abs(x(a.t) - mx) ? b : a);
+    for (const n of [cross, dot]) n.setAttribute("visibility", "visible");
+    cross.setAttribute("x1", x(p.t)); cross.setAttribute("x2", x(p.t));
+    dot.setAttribute("cx", x(p.t)); dot.setAttribute("cy", y(p.elo));
+    showTip(e, `<b>${Math.round(p.elo)}</b> <span>${esc(shortDate(p.d))}</span>`);
+  });
+  hit.addEventListener("mouseleave", () => { hideTip(); for (const n of [cross, dot]) n.setAttribute("visibility", "hidden"); });
+  svg.append(cross, dot, hit);
+  box.replaceChildren(svg);
+}
+
+function renderXg() {
+  const box = document.getElementById("xg-chart");
+  const teams = DATA.table.filter(t => t.xgf != null && t.xga != null);
+  const W = box.clientWidth, H = Math.min(420, Math.max(300, W * 0.55)), m = { t: 12, r: 16, b: 40, l: 44 };
+  if (!W) return;
+  const xs = teams.map(t => t.xgf), ys = teams.map(t => t.xga);
+  const xlo = Math.min(...xs) - 0.1, xhi = Math.max(...xs) + 0.1, ylo = Math.min(...ys) - 0.1, yhi = Math.max(...ys) + 0.1;
+  const x = v => m.l + (v - xlo) / (xhi - xlo) * (W - m.l - m.r);
+  const y = v => m.t + (v - ylo) / (yhi - ylo) * (H - m.t - m.b);
+  const svg = el("svg:svg", { width: W, height: H });
+
+  for (const v of niceTicks(xlo, xhi, 6)) {
+    svg.append(el("svg:line", { class: "gridline", x1: x(v), x2: x(v), y1: m.t, y2: H - m.b }));
+    svg.append(el("svg:text", { x: x(v), y: H - m.b + 16, "text-anchor": "middle", text: v.toFixed(1) }));
+  }
+  for (const v of niceTicks(ylo, yhi, 5)) {
+    svg.append(el("svg:line", { class: "gridline", x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }));
+    svg.append(el("svg:text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end", text: v.toFixed(1) }));
+  }
+  svg.append(el("svg:text", { x: (m.l + W - m.r) / 2, y: H - 4, "text-anchor": "middle", text: "Chances created (xG per game)" }));
+  svg.append(el("svg:text", { x: -(m.t + H - m.b) / 2, y: 12, transform: "rotate(-90)", "text-anchor": "middle", text: "Chances allowed (xG per game)" }));
+
+  const mean = a => a.reduce((s, v) => s + v, 0) / a.length;
+  svg.append(el("svg:line", { class: "ref", x1: x(mean(xs)), x2: x(mean(xs)), y1: m.t, y2: H - m.b }));
+  svg.append(el("svg:line", { class: "ref", x1: m.l, x2: W - m.r, y1: y(mean(ys)), y2: y(mean(ys)) }));
+  svg.append(el("svg:text", { x: W - m.r - 4, y: m.t + 12, "text-anchor": "end", text: "Strong attack, tight defence" }));
+  svg.append(el("svg:text", { x: m.l + 6, y: H - m.b - 8, text: "Weak attack, leaky defence" }));
+
+  const dots = [];
+  for (const t of teams) {
+    const dot = el("svg:circle", { cx: x(t.xgf), cy: y(t.xga), r: t.Team === selectedTeam ? 6 : 5,
+      fill: "var(--home)", stroke: "var(--surface)", "stroke-width": 2, style: "cursor:pointer" });
+    dot.addEventListener("mousemove", e => showTip(e, `<b>${esc(t.Team)}</b><br><span>Created ${t.xgf.toFixed(2)} · Allowed ${t.xga.toFixed(2)}</span>`));
+    dot.addEventListener("mouseleave", hideTip);
+    dot.addEventListener("click", () => selectTeam(t.Team));
+    svg.append(dot);
+    dots.push({ x: x(t.xgf), y: y(t.xga) });
+  }
+  box.replaceChildren(svg);
+
+  // place each name beside its dot where it doesn't cover another dot or name
+  const placed = [];
+  const overlaps = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  teams.forEach((t, i) => {
+    const label = el("svg:text", { class: "label", text: t.Team });
+    if (t.Team === selectedTeam) label.setAttribute("style", "font-weight:600;fill:var(--ink)");
+    svg.append(label);
+    const w = label.getComputedTextLength(), h = 12, cx = dots[i].x, cy = dots[i].y;
+    const options = [
+      { x: cx + 9, y: cy - h / 2, anchor: "start" }, { x: cx - 9 - w, y: cy - h / 2, anchor: "end" },
+      { x: cx - w / 2, y: cy - 9 - h, anchor: "middle" }, { x: cx - w / 2, y: cy + 9, anchor: "middle" },
+    ];
+    const ok = o => {
+      const b = { x: o.x, y: o.y, w, h };
+      if (b.x < m.l || b.x + w > W - m.r + 12 || b.y < 0 || b.y + h > H - m.b) return false;
+      if (dots.some((d, j) => j !== i && overlaps(b, { x: d.x - 6, y: d.y - 6, w: 12, h: 12 }))) return false;
+      return !placed.some(p => overlaps(b, p));
+    };
+    const o = options.find(ok) || options[0];
+    placed.push({ x: o.x, y: o.y, w, h });
+    const ax = o.anchor === "start" ? o.x : o.anchor === "end" ? o.x + w : o.x + w / 2;
+    label.setAttribute("x", ax);
+    label.setAttribute("y", o.y + h - 2);
+    label.setAttribute("text-anchor", o.anchor);
+  });
+}
+
+function renderTable() {
+  const body = document.getElementById("table-body");
+  body.replaceChildren(...DATA.table.map(t => {
+    const gd = t.GD > 0 ? `+${t.GD}` : String(t.GD);
+    const row = el("tr", { class: t.Team === selectedTeam ? "selected" : "" },
+      el("td", { class: "num", text: t.Pos }), el("td", { text: t.Team }), el("td", { class: "num", text: t.P }),
+      el("td", { class: "num hide-sm", text: t.W }), el("td", { class: "num hide-sm", text: t.D }), el("td", { class: "num hide-sm", text: t.L }),
+      el("td", { class: "num", text: gd }), el("td", { class: "num pts", text: t.Pts }), el("td", { class: "num", text: t.Elo }));
+    row.addEventListener("click", () => selectTeam(t.Team));
+    return row;
+  }));
+}
+
+function selectTeam(team) {
+  selectedTeam = team;
+  document.getElementById("team-select").value = team;
+  renderElo(); renderXg(); renderTable();
+}
+
+function renderTeams() {
+  const select = document.getElementById("team-select");
+  select.replaceChildren(...DATA.table.map(t => el("option", { value: t.Team, text: t.Team })));
+  select.addEventListener("change", () => selectTeam(select.value));
+  selectTeam(DATA.table[0].Team);
+}
+
+/* ---------- Page ---------- */
+const views = ["fixtures", "record", "teams"];
+function show(view) {
+  for (const v of views) document.getElementById(v).hidden = v !== view;
+  for (const b of document.querySelectorAll("nav button")) b.setAttribute("aria-selected", b.dataset.view === view);
+  if (view === "teams") { renderElo(); renderXg(); }
+  if (view === "record") renderWeekly();
+  fitLabels();
+  history.replaceState(null, "", `#${view}`);
+}
+document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => show(b.dataset.view)));
+
+document.getElementById("footer").textContent =
+  `Model: logistic regression on Elo ratings, xG and bookmaker odds, retrained every week. Results up to ${shortDate(DATA.updated)}.`;
+
+renderFixtures();
+renderRecord();
+renderTeams();
+show(views.includes(location.hash.slice(1)) ? location.hash.slice(1) : "fixtures");
+
+let resizeTimer;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { renderElo(); renderXg(); renderWeekly(); fitLabels(); }, 150);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+{
+ "results_up_to": "2026-11-22",
+ "matches": [
+  {
+   "kickoff": "2026-11-23T20:00:00+00:00",
+   "round": 11,
+   "home": "Brentford",
+   "away": "Everton",
+   "pH": 0.4298,
+   "pD": 0.2765,
+   "pA": 0.2937,
+   "odds": true
+  },
+  {
+   "kickoff": "2026-11-27T20:00:00+00:00",
+   "round": 12,
+   "home": "Nott'm Forest",
+   "away": "Chelsea",
+   "pH": 0.4188,
+   "pD": 0.2659,
+   "pA": 0.3153,
+   "odds": false
+  },
+  {
+   "kickoff": "2026-11-28T15:00:00+00:00",
+   "round": 12,
+   "home": "Leeds",
+   "away": "Coventry",
+   "pH": 0.5623,
+   "pD": 0.2491,
+   "pA": 0.1886,
+   "odds": false
+  },
+  {
+   "kickoff": "2026-11-28T15:00:00+00:00",
+   "round": 12,
+   "home": "Man United",
+   "away": "Brentford",
+   "pH": 0.4192,
+   "pD": 0.2499,
+   "pA": 0.3309,
+   "odds": false
+  },
+  {
+   "kickoff": "2026-11-28T17:30:00+00:00",
+   "round": 12,
+   "home": "Ipswich",
+   "away": "Aston Villa",
+   "pH": 0.1857,
+   "pD": 0.2308,
+   "pA": 0.5835,
+   "odds": false
+  },
+  {
+   "kickoff": "2026-11-29T12:00:00+00:00",
+   "round": 12,
+   "home": "Everton",
+   "away": "Liverpool",
+   "pH": 0.2978,
+   "pD": 0.2607,
+   "pA": 0.4415,
+   "odds": false
+  },
+  {
+   "kickoff": "2026-11-29T14:05:00+00:00",
+   "round": 12,
+   "home": "Brighton",
+   "away": "Newcastle",
+   "pH": 0.6129,
+   "pD": 0.2208,
+   "pA": 0.1663,
+   "odds": false
+  },
+  {
+   "kickoff": "2026-11-29T14:05:00+00:00",
+   "round": 12,
+   "home": "Fulham",
+   "away": "Bournemouth",
+   "pH": 0.3595,
+   "pD": 0.2649,
+   "pA": 0.3756,
+   "odds": false
+  },
+  {
+   "kickoff": "2026-11-29T14:05:00+00:00",
+   "round": 12,
+   "home": "Sunderland",
+   "away": "Tottenham",
+   "pH": 0.3615,
+   "pD": 0.2733,
+   "pA": 0.3653,
+   "odds": false
+  },
+  {
+   "kickoff": "2026-11-29T14:05:00+00:00",
+   "round": 12,
+   "home": "Crystal Palace",
+   "away": "Hull",
+   "pH": 0.2764,
+   "pD": 0.2551,
+   "pA": 0.4684,
+   "odds": false
+  },
+  {
+   "kickoff": "2026-11-29T16:30:00+00:00",
+   "round": 12,
+   "home": "Arsenal",
+   "away": "Man City",
+   "pH": 0.5999,
+   "pD": 0.2327,
+   "pA": 0.1674,
+   "odds": false
+  }
+ ]
+}

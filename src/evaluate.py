@@ -55,6 +55,9 @@ def main() -> None:
         "Pick": played["Pick"],
         "Chance given to result": (played["Chance given"] * 100).round().astype(int).astype(str) + "%",
         "Correct": played["Correct"].map({True: "yes", False: "no"}),
+        "Result": played["FTR"].map({"H": "Home", "D": "Draw", "A": "Away"}),
+        **{col: (played[col] * 100).round().astype(int).astype(str) + "%"
+           for col in ("Home win", "Draw", "Away win")},
     })
     print(table.to_string(index=False))
 

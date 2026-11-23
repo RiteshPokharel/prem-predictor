@@ -9,6 +9,7 @@ Run after downloading fresh data:
     python src/predict.py
 """
 
+import json
 import warnings
 from pathlib import Path
 
@@ -112,6 +113,16 @@ def main() -> None:
     out.to_csv(path, index=False)
     print(f"\nSaved -> {path.relative_to(OUT_DIR.parent)}")
     export_team_data(history, elo)
+
+    next_round = [
+        {"kickoff": k.isoformat(), "round": None if pd.isna(r) else int(r), "home": h, "away": a,
+         "pH": round(float(p["H"]), 4), "pD": round(float(p["D"]), 4), "pA": round(float(p["A"]), 4),
+         "odds": bool(o)}
+        for k, r, h, a, (_, p), o in zip(fx["Kickoff"], fx["Round"], fx["HomeTeam"], fx["AwayTeam"],
+                                          probs.iterrows(), has_odds)
+    ]
+    summary = {"results_up_to": f"{history['Date'].max():%Y-%m-%d}", "matches": next_round}
+    (OUT_DIR / "next_round.json").write_text(json.dumps(summary, indent=1))
 
 
 def export_team_data(history: pd.DataFrame, elo) -> None:

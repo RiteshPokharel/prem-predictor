@@ -33,11 +33,14 @@ jobs:
       - name: Predict the next round
         run: python src/predict.py
 
+      - name: Build the dashboard
+        run: python src/build_site.py
+
       - name: Save to GitHub
         run: |
           git config user.name "RiteshPokharel"
           git config user.email "125461073+RiteshPokharel@users.noreply.github.com"
-          git add predictions/
+          git add predictions/ site/
           if git diff --cached --quiet; then
             echo "Nothing new to save"
           else
