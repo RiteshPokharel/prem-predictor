@@ -1,6 +1,7 @@
 """Build the dashboard: site/index.html, a single page you can open in any browser.
 
-Reads the files in predictions/ and puts the data into site/template.html.
+Reads the files in predictions/ and puts the data into site/template.html
+(which loads site/style.css and site/app.js).
 Run after predict.py and evaluate.py:  python src/build_site.py
 """
 
