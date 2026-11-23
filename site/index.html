@@ -36,8 +36,8 @@
   @media (prefers-color-scheme: dark) {
     :root {
       color-scheme: dark;
-      --board: #111214;
-      --sheet: #1b1c1f;
+      --board: #0b0c0e;
+      --sheet: #1f2125;
       --red: #ef4f66;
       --red-ink: #ff8094;
       --rule: #4a2a31;
@@ -86,6 +86,7 @@
   /* coupon sheet */
   .sheet { background: var(--sheet); border: 2px solid var(--red); }
   .sheet + .sheet { margin-top: 24px; }
+  .split > .sheet + .sheet { margin-top: 0; }
   .sheet-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 14px 20px; border-bottom: 2px solid var(--red); flex-wrap: wrap; }
   .sheet-head p { margin: 0; color: var(--muted); font-size: 13px; }
   .sheet-foot { padding: 12px 20px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 13px; }
@@ -103,7 +104,7 @@
   .coupon .match { font-weight: 600; }
   .coupon .match .v { color: var(--muted); font-weight: 400; padding: 0 6px; }
   .coupon .cell { width: 84px; text-align: center; border-left: 1px solid var(--rule); padding: 0; position: relative; }
-  .coupon .cell .n { position: relative; z-index: 1; font: 600 22px/1 var(--cond); font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  .coupon .cell .n { position: relative; z-index: 1; font: 600 22px/1 var(--cond); font-variant-numeric: tabular-nums; color: var(--ink-2); transition: color 90ms ease-out; }
   .coupon .cell .ink { position: absolute; inset: 7px 9px; background: var(--mark); clip-path: inset(0 0 0 0); }
   .coupon .cell.pick .n { color: var(--mark-ink); font-weight: 700; }
   .coupon .cell .ring { position: absolute; inset: 4px 6px; border: 2px solid var(--red); border-radius: 50%; z-index: 2; pointer-events: none; }
@@ -174,7 +175,12 @@
   #tip .fig { font-size: 16px; font-weight: 700; }
 
   /* how it works */
-  .read { max-width: 68ch; }
+  .read { padding: 22px 26px 26px; }
+  .read > * { max-width: 68ch; }
+  .how-split { grid-template-columns: minmax(0, 1fr) 380px; }
+  .chart-title { font: 700 14px var(--cond); text-transform: uppercase; color: var(--red); margin: 4px 0 6px; letter-spacing: 0.02em; }
+  .chart-title + div { margin-bottom: 18px; }
+  .chart-note { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
   .read p, .read li { color: var(--ink-2); }
   .read h2 { margin: 36px 0 10px; }
   .read h2:first-child { margin-top: 0; }
@@ -187,7 +193,7 @@
   footer { max-width: 1180px; margin: 0 auto; padding: 0 24px 40px; color: var(--muted); font-size: 13px; }
 
   @media (max-width: 960px) {
-    .split, .split.wide { grid-template-columns: 1fr; }
+    .split, .split.wide, .how-split { grid-template-columns: 1fr; }
     .detail-grid { grid-template-columns: 1fr; }
   }
   @media (max-width: 640px) {
@@ -207,7 +213,12 @@
     .coupon td.match { padding-top: 8px; padding-bottom: 8px; line-height: 1.3; }
     .ko-sm { display: block; color: var(--muted); font-size: 12px; font-weight: 400; margin-top: 2px; }
     .coupon .verdict { display: none; }
-    .coupon .score { width: 52px; font-size: 19px; }
+    .coupon .score { width: 44px; font-size: 18px; padding: 0 2px; }
+    .settled { table-layout: fixed; }
+    .settled th:nth-child(2) { width: 42px; }
+    .settled th:nth-child(3), .settled th:nth-child(4), .settled th:nth-child(5) { width: 44px; }
+    .settled .cell { width: auto; }
+    .settled td.match { white-space: normal; overflow-wrap: anywhere; }
     .hide-sm { display: none; }
     .team-figs { gap: 18px; }
   }
@@ -258,7 +269,7 @@
       <div>
         <div class="sheet team-panel" id="team-panel"></div>
         <div class="sheet">
-          <div class="sheet-head"><h2>Attack and defence</h2><p>Expected goals per game, last 20 league matches</p></div>
+          <div class="sheet-head"><h2>Attack and defence</h2><p>xG created and conceded per game, last 20 league matches</p></div>
           <div style="padding:12px 20px 20px"><div id="xg-chart"></div></div>
         </div>
       </div>
@@ -274,7 +285,8 @@
 
   <section id="how" role="tabpanel" aria-labelledby="tab-how" hidden>
     <div class="page-title"><h1>How it works</h1></div>
-    <div class="read">
+    <div class="split how-split">
+    <div class="sheet read">
       <h2>What the model looks at</h2>
       <p>Every forecast comes from a logistic regression that gives each match three chances: home win, draw and away win. It uses only what is known before kick-off:</p>
       <ul>
@@ -312,6 +324,15 @@
         <li>Newest results and fixtures: ESPN</li>
         <li>Expected goals and gameweeks: <a href="https://fantasy.premierleague.com">Fantasy Premier League</a></li>
       </ul>
+    </div>
+    <aside class="sheet">
+      <div class="sheet-head"><h2>Tested on 1,240 matches</h2></div>
+      <div style="padding:14px 20px 18px">
+        <h3 class="chart-title">Picks correct</h3><div id="model-chart-acc"></div>
+        <h3 class="chart-title">Log loss, lower is better</h3><div id="model-chart-ll"></div>
+        <p class="chart-note">Red: this model. Black: bookmakers. Each test retrained the model week by week on earlier matches only.</p>
+      </div>
+    </aside>
     </div>
   </section>
 </main>
@@ -431,12 +452,12 @@ function renderMatchDetail(td, m) {
       ...f("Table position", h.Pos ?? "–", a.Pos ?? "–"),
       ...f("Points", h.Pts ?? "–", a.Pts ?? "–"),
       ...f("Rating", h.Elo ?? "–", a.Elo ?? "–"),
-      ...f("xG for per game", h.xgf?.toFixed(2) ?? "–", a.xgf?.toFixed(2) ?? "–"),
-      ...f("xG against per game", h.xga?.toFixed(2) ?? "–", a.xga?.toFixed(2) ?? "–"))));
+      ...f("xG created per game", h.xgf?.toFixed(2) ?? "–", a.xgf?.toFixed(2) ?? "–"),
+      ...f("xG conceded per game", h.xga?.toFixed(2) ?? "–", a.xga?.toFixed(2) ?? "–"))));
   lineChart(chart, [
     { name: m.home, color: "var(--red)", pts: series(m.home, true) },
     { name: m.away, color: "var(--ink)", pts: series(m.away, true), dash: "5 4" },
-  ], 180);
+  ], 180, { names: true });
 }
 
 function renderStub() {
@@ -513,7 +534,7 @@ function renderResults() {
     const rows = byDay[d], h = rows.filter(r => r.correct).length;
     box.append(el("div", { class: "sheet" },
       el("div", { class: "sheet-head" }, el("h2", { text: fmt(d, { weekday: "long", day: "numeric", month: "long" }) }), el("p", { text: `${h} of ${rows.length} correct` })),
-      el("table", { class: "coupon" },
+      el("table", { class: "coupon settled" },
         el("thead", {}, el("tr", {},
           el("th", { scope: "col", class: "left" , text: "Match" }), el("th", { scope: "col", text: "Score" }),
           el("th", { scope: "col" }, el("span", { class: "key", text: "1" }), "Home"),
@@ -577,12 +598,14 @@ function niceTicks(lo, hi, count) {
   return out;
 }
 
-function lineChart(box, lines, H = 220) {
+function lineChart(box, lines, H = 220, { names = false } = {}) {
   const W = box.clientWidth;
   if (!W) return;
   lines = lines.filter(l => l.pts.length);
   if (!lines.length) return;
-  const m = { t: 10, r: 52, b: 24, l: 44 };
+  const endText = (l, p) => names ? `${l.name} ${Math.round(p.elo)}` : String(Math.round(p.elo));
+  const longest = Math.max(...lines.map(l => endText(l, l.pts[l.pts.length - 1]).length));
+  const m = { t: 10, r: 16 + longest * 7, b: 24, l: 44 };
   const all = lines.flatMap(l => l.pts);
   const t0 = Math.min(...all.map(p => p.t)), t1 = Math.max(...all.map(p => p.t));
   const lo = Math.min(1500, ...all.map(p => p.elo)) - 12, hi = Math.max(1500, ...all.map(p => p.elo)) + 12;
@@ -606,7 +629,7 @@ function lineChart(box, lines, H = 220) {
   for (let i = 1; i < ends.length; i++) if (ends[i].yy - ends[i - 1].yy < 14) ends[i].yy = ends[i - 1].yy + 14;
   for (const { l, p, yy } of ends) {
     svg.append(el("svg:circle", { cx: x(p.t), cy: y(p.elo), r: 3.5, fill: l.color }),
-      el("svg:text", { class: "lbl", x: W - m.r + 8, y: yy + 4, text: Math.round(p.elo) }));
+      el("svg:text", { class: "lbl", x: W - m.r + 8, y: yy + 4, text: endText(l, p), style: names ? `fill:${l.color}` : null }));
   }
   const cross = el("svg:line", { stroke: "var(--muted)", y1: m.t, y2: H - m.b, visibility: "hidden" });
   const hit = el("svg:rect", { x: m.l, y: 0, width: Math.max(0, W - m.l - m.r), height: H, fill: "transparent" });
@@ -631,7 +654,7 @@ function renderTable() {
       el("td", {}, el("span", { class: "fig", text: signed(t.GD) })),
       el("td", {}, el("span", { class: "fig", style: "font-weight:700", text: t.Pts })),
       el("td", {}, el("span", { class: "fig", text: t.Elo })),
-      el("td", {}, el("span", { class: `fig ${c > 0 ? "up" : c < 0 ? "down" : ""}`, text: signed(c) })));
+      el("td", {}, el("span", { class: "fig", text: signed(c) })));
     row.addEventListener("click", () => select(t.Team));
     row.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(t.Team); } });
     return row;
@@ -646,8 +669,8 @@ function renderTeamPanel() {
       el("div", {}, el("div", { class: "team-name", text: t.Team }), el("div", { class: "team-sub", text: `${ordinal(t.Pos)} in the table · ${ordinal(rank)} by rating` })),
       el("div", { class: "team-figs" },
         el("div", {}, "Rating", el("span", { class: "fig", text: t.Elo })),
-        el("div", {}, "Last 5 games", el("span", { class: `fig ${c > 0 ? "up" : c < 0 ? "down" : ""}`, text: signed(c) })),
-        el("div", {}, "xG for / against", el("span", { class: "fig", text: t.xgf != null ? `${t.xgf.toFixed(2)} / ${t.xga.toFixed(2)}` : "–" })))),
+        el("div", {}, "Last 5 games", el("span", { class: "fig", text: signed(c) })),
+        el("div", {}, "xG created / conceded", el("span", { class: "fig", text: t.xgf != null ? `${t.xgf.toFixed(2)} / ${t.xga.toFixed(2)}` : "–" })))),
     chart);
   lineChart(chart, [{ name: t.Team, color: "var(--red)", pts: series(selected) }], 220);
 }
@@ -658,48 +681,91 @@ function renderXg() {
   const box = document.getElementById("xg-chart"), W = box.clientWidth;
   if (!W) return;
   const teams = DATA.table.filter(t => t.xgf != null && t.xga != null);
-  const H = Math.min(400, Math.max(300, W * 0.62)), m = { t: 12, r: 12, b: 40, l: 44 };
+  const H = W < 560 ? Math.round(W * 1.2) : Math.min(400, Math.max(300, W * 0.62)), m = { t: 12, r: 12, b: 40, l: 44 };
   const xs = teams.map(t => t.xgf), ys = teams.map(t => t.xga);
   const xlo = Math.min(...xs) - 0.1, xhi = Math.max(...xs) + 0.1, ylo = Math.min(...ys) - 0.1, yhi = Math.max(...ys) + 0.1;
   const x = v => m.l + (v - xlo) / (xhi - xlo) * (W - m.l - m.r);
   const y = v => m.t + (v - ylo) / (yhi - ylo) * (H - m.t - m.b);
-  const svg = el("svg:svg", { width: W, height: H, role: "img", "aria-label": "Chances created against chances allowed, per team" });
+  const svg = el("svg:svg", { width: W, height: H, role: "img", "aria-label": "xG created against xG conceded per game, per team" });
   for (const v of niceTicks(xlo, xhi, 6)) svg.append(el("svg:line", { class: "grid", x1: x(v), x2: x(v), y1: m.t, y2: H - m.b }), el("svg:text", { x: x(v), y: H - m.b + 16, "text-anchor": "middle", text: v.toFixed(1) }));
   for (const v of niceTicks(ylo, yhi, 5)) svg.append(el("svg:line", { class: "grid", x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }), el("svg:text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end", text: v.toFixed(1) }));
-  svg.append(el("svg:text", { x: (m.l + W - m.r) / 2, y: H - 4, "text-anchor": "middle", text: "Chances created per game" }),
-    el("svg:text", { x: -(m.t + H - m.b) / 2, y: 12, transform: "rotate(-90)", "text-anchor": "middle", text: "Chances allowed per game (fewer is higher)" }));
+  svg.append(el("svg:text", { x: (m.l + W - m.r) / 2, y: H - 4, "text-anchor": "middle", text: "xG created per game" }),
+    el("svg:text", { x: -(m.t + H - m.b) / 2, y: 12, transform: "rotate(-90)", "text-anchor": "middle", text: "xG conceded per game (fewer conceded, higher up)" }));
   const pts = teams.map(t => ({ t, x: x(t.xgf), y: y(t.xga) }));
   for (const p of pts) {
     const on = p.t.Team === selected;
     const dot = el("svg:circle", { cx: p.x, cy: p.y, r: on ? 7 : 5, fill: on ? "var(--red)" : "var(--sheet)", stroke: on ? "var(--red)" : "var(--ink-2)", "stroke-width": on ? 2 : 1.5, style: "cursor:pointer" });
-    dot.addEventListener("mousemove", e => showTip(e, [el("strong", { text: p.t.Team }), el("br"), `Created ${p.t.xgf.toFixed(2)} · allowed ${p.t.xga.toFixed(2)}`]));
+    dot.addEventListener("mousemove", e => showTip(e, [el("strong", { text: p.t.Team }), el("br"), `xG created ${p.t.xgf.toFixed(2)} · conceded ${p.t.xga.toFixed(2)}`]));
     dot.addEventListener("mouseleave", hideTip);
     dot.addEventListener("click", () => select(p.t.Team));
     svg.append(dot);
   }
   box.replaceChildren(svg);
   const placed = [], over = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
-  for (const p of [...pts].sort((a, b) => (b.t.Team === selected) - (a.t.Team === selected))) {
+  const order = [...pts].sort((a, b) => (b.t.Team === selected) - (a.t.Team === selected) || a.t.Team.localeCompare(b.t.Team));
+  for (const p of order) {
     const on = p.t.Team === selected;
     const label = el("svg:text", { class: "lbl", text: p.t.Team, style: on ? "fill:var(--red);font-weight:700" : null });
     svg.append(label);
     const w = label.getComputedTextLength(), h = 13;
-    const spot = [[p.x + 9, p.y - h / 2, "start"], [p.x - 9 - w, p.y - h / 2, "end"], [p.x - w / 2, p.y - 9 - h, "middle"], [p.x - w / 2, p.y + 9, "middle"]].find(([sx, sy]) => {
+    const spots = [];
+    for (const r of [9, 22, 36]) {
+      spots.push([p.x + r, p.y - h / 2, "start", r], [p.x - r - w, p.y - h / 2, "end", r],
+        [p.x - w / 2, p.y - r - h, "middle", r], [p.x - w / 2, p.y + r, "middle", r],
+        [p.x + r * 0.7, p.y - r * 0.7 - h, "start", r], [p.x + r * 0.7, p.y + r * 0.7, "start", r],
+        [p.x - r * 0.7 - w, p.y - r * 0.7 - h, "end", r], [p.x - r * 0.7 - w, p.y + r * 0.7, "end", r]);
+    }
+    const fits = ([sx, sy]) => {
       const b = { x: sx, y: sy, w, h };
-      return sx >= m.l && sx + w <= W - m.r && sy >= 0 && sy + h <= H - m.b && !pts.some(q => q !== p && over(b, { x: q.x - 6, y: q.y - 6, w: 12, h: 12 })) && !placed.some(o => over(b, o));
-    });
-    if (!spot) { label.remove(); continue; }
-    const [sx, sy, anchor] = spot;
+      return sx >= m.l && sx + w <= W - m.r && sy >= 0 && sy + h <= H - m.b
+        && !pts.some(q => over(b, { x: q.x - 6, y: q.y - 6, w: 12, h: 12 })) && !placed.some(o => over(b, o));
+    };
+    const [sx, sy, anchor, r] = spots.find(fits) || spots.find(([x0, y0]) => x0 >= m.l && x0 + w <= W - m.r && y0 >= 0) || spots[0];
     placed.push({ x: sx, y: sy, w, h });
     label.setAttribute("x", anchor === "start" ? sx : anchor === "end" ? sx + w : sx + w / 2);
     label.setAttribute("y", sy + h - 3);
     label.setAttribute("text-anchor", anchor);
+    if (r > 9) {
+      const lx = Math.max(sx, Math.min(p.x, sx + w)), ly = sy + h / 2 > p.y ? sy : sy + h;
+      svg.insertBefore(el("svg:line", { x1: p.x, y1: p.y, x2: lx, y2: ly, stroke: "var(--muted)", "stroke-width": 1 }), svg.querySelector("circle"));
+    }
   }
 }
 
 function select(team) {
   selected = team;
   renderTable(); renderTeamPanel(); renderXg();
+}
+
+/* ---------- how it works ---------- */
+const TESTED = [
+  ["Always home", 43.1, 1.074], ["Elo only", 52.2, 0.985], ["Elo + form", 52.4, 0.981],
+  ["Elo + form + odds", 52.5, 0.972], ["This model", 53.5, 0.971], ["Bookmakers", 53.6, 0.969],
+];
+function dotPlot(box, col, lo, hi, step, fmtv) {
+  const W = box.clientWidth;
+  if (!W) return;
+  const rowH = 26, m = { t: 6, r: 44, b: 22, l: 118 }, H = m.t + m.b + rowH * TESTED.length;
+  const x = v => m.l + (v - lo) / (hi - lo) * (W - m.l - m.r);
+  const svg = el("svg:svg", { width: W, height: H, role: "img", "aria-label": box.previousElementSibling.textContent });
+  for (let v = lo; v <= hi + 1e-9; v += step) {
+    svg.append(el("svg:line", { class: "grid", x1: x(v), x2: x(v), y1: m.t, y2: H - m.b }),
+      el("svg:text", { x: x(v), y: H - 6, "text-anchor": "middle", text: fmtv(v) }));
+  }
+  TESTED.forEach((r, i) => {
+    const yy = m.t + rowH * (i + 0.5), v = r[col];
+    const color = r[0] === "This model" ? "var(--red)" : r[0] === "Bookmakers" ? "var(--ink)" : "var(--muted)";
+    const strong = color !== "var(--muted)";
+    svg.append(el("svg:text", { x: m.l - 10, y: yy + 4, "text-anchor": "end", class: strong ? "lbl" : null, text: r[0] }),
+      el("svg:line", { x1: x(lo), x2: x(v), y1: yy, y2: yy, stroke: color, "stroke-opacity": strong ? 0.5 : 0.35 }),
+      el("svg:circle", { cx: x(v), cy: yy, r: strong ? 5.5 : 4.5, fill: color }),
+      el("svg:text", { x: x(v) + 10, y: yy + 4, class: strong ? "lbl" : null, text: col === 1 ? `${v}%` : v.toFixed(3) }));
+  });
+  box.replaceChildren(svg);
+}
+function renderModelCharts() {
+  dotPlot(document.getElementById("model-chart-acc"), 1, 40, 56, 4, v => `${v}%`);
+  dotPlot(document.getElementById("model-chart-ll"), 2, 0.96, 1.08, 0.04, v => v.toFixed(2));
 }
 
 /* ---------- page ---------- */
@@ -714,6 +780,7 @@ function show(id, focus = false) {
   }
   if (id === "teams") { renderTeamPanel(); renderXg(); }
   if (id === "results") renderWeekly();
+  if (id === "how") renderModelCharts();
   scrollTo(0, 0);
 }
 tabs.forEach((t, i) => {
@@ -730,6 +797,7 @@ renderCoupon();
 renderResults();
 renderTable();
 flipIn(document.getElementById("coupon-body"));
+document.fonts.ready.then(() => { if (!document.getElementById("teams").hidden) renderXg(); });
 
 let resizeTimer;
 addEventListener("resize", () => {
@@ -737,6 +805,7 @@ addEventListener("resize", () => {
   resizeTimer = setTimeout(() => {
     if (!document.getElementById("teams").hidden) { renderTeamPanel(); renderXg(); }
     if (!document.getElementById("results").hidden) renderWeekly();
+    if (!document.getElementById("how").hidden) renderModelCharts();
   }, 150);
 });
 </script>
