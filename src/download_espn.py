@@ -54,11 +54,17 @@ TEAM_NAMES = {
 }
 
 
-def get(path: str) -> dict:
-    with urlopen(ESPN + path, timeout=30) as r:
-        data = json.loads(r.read())
-    time.sleep(0.3)  # be polite to the server
-    return data
+def get(path: str, tries: int = 3) -> dict:
+    for attempt in range(1, tries + 1):
+        try:
+            with urlopen(ESPN + path, timeout=30) as r:
+                data = json.loads(r.read())
+            time.sleep(0.3)  # be polite to the server
+            return data
+        except OSError:
+            if attempt == tries:
+                raise
+            time.sleep(2 * attempt)  # wait a bit, then try again
 
 
 def our_name(espn_name: str) -> str:
