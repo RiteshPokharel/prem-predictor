@@ -1,0 +1,46 @@
+# Publish the dashboard (site/) to GitHub Pages.
+# Runs when the page changes on master, and after every weekly prediction update.
+name: Publish site
+
+on:
+  push:
+    branches: [master]
+    paths: ["site/**"]
+  workflow_run:
+    workflows: ["Weekly predictions"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master   # the weekly update commits new data, so publish the latest master
+
+      - name: Collect the page files
+        run: |
+          mkdir _site
+          cp -R site/. _site/
+          rm _site/template.html   # only used to build index.html
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4
