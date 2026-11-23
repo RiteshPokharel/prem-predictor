@@ -1,0 +1,46 @@
+# Automatically download the newest data, check past predictions and predict the next round.
+# Runs twice a week, and can also be started by hand from the "Actions" tab on GitHub.
+name: Weekly predictions
+
+on:
+  schedule:
+    - cron: "0 6 * * 2"   # Tuesday 06:00 GMT - after the weekend (and Monday) games
+    - cron: "0 8 * * 5"   # Friday 08:00 GMT - again with the latest bookmaker odds
+  workflow_dispatch:       # "Run workflow" button
+
+permissions:
+  contents: write          # allowed to commit the new predictions
+
+jobs:
+  predict:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install packages
+        run: pip install pandas numpy scikit-learn
+
+      - name: Download data
+        run: python src/download_data.py
+
+      - name: Check past predictions
+        run: python src/evaluate.py
+
+      - name: Predict the next round
+        run: python src/predict.py
+
+      - name: Save to GitHub
+        run: |
+          git config user.name "RiteshPokharel"
+          git config user.email "125461073+RiteshPokharel@users.noreply.github.com"
+          git add predictions/
+          if git diff --cached --quiet; then
+            echo "Nothing new to save"
+          else
+            git commit -m "Weekly update: predictions and track record"
+            git push
+          fi
