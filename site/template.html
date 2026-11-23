@@ -166,6 +166,15 @@
     background: none; color: var(--ink); border: 1px solid var(--rule); transition: background-color 90ms ease-out;
   }
   .team-pick .step:hover { background: var(--hover); border-color: var(--red); }
+  .lede.strong { color: var(--ink); font-size: 18px; }
+  #teams .page-title { margin-bottom: 40px; }
+  .team-col { position: relative; }
+  .switch-hint { position: absolute; right: 0; bottom: 100%; margin: 0 0 8px; display: flex; align-items: center; gap: 6px; font: 600 13px var(--cond); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .switch-hint .mini { display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid var(--rule); color: var(--red); }
+  .switch-hint .mini svg { width: 10px; height: 10px; }
+  .switch-hint .mini + .mini { margin-right: 4px; }
+  @keyframes nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(4px); } }
+  .team-pick .step.nudge svg { animation: nudge 600ms ease-in-out 2; }
   .team-pick .step svg { width: 16px; height: 16px; }
   .team-title { flex: 1; min-width: 0; text-align: center; }
   .team-name { font: 800 32px/1 var(--cond); text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -314,9 +323,10 @@
   </section>
 
   <section id="teams" role="tabpanel" aria-labelledby="tab-teams" hidden>
-    <div class="page-title"><h1>Teams</h1><p class="lede">How strong each team is right now, and how many chances they create and give away.</p></div>
+    <div class="page-title"><h1>Teams</h1><p class="lede strong">How strong each team is right now</p></div>
     <div class="split wide">
-      <div>
+      <div class="team-col">
+        <p class="switch-hint"><span class="mini"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2"/></svg></span><span class="mini"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>Switch team with the arrows</p>
         <div class="sheet team-panel" id="team-panel">
           <div class="team-pick">
             <button class="step" id="team-prev" type="button" aria-label="Previous team"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
@@ -892,6 +902,7 @@ function renderModelCharts() {
 
 /* ---------- page ---------- */
 const tabs = [...document.querySelectorAll(".tab")];
+let nudged = false;  // hint once that the arrows switch team
 function show(id, focus = false) {
   for (const t of tabs) {
     const on = t.getAttribute("aria-controls") === id;
@@ -900,7 +911,10 @@ function show(id, focus = false) {
     document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
     if (on && focus) t.focus();
   }
-  if (id === "teams") { renderTeamPanel(); renderXg(); }
+  if (id === "teams") {
+    renderTeamPanel(); renderXg();
+    if (!nudged) { nudged = true; document.getElementById("team-next").classList.add("nudge"); }
+  }
   if (id === "results") renderWeekly();
   if (id === "how") renderModelCharts();
   history.replaceState(null, "", id === "coupon" ? location.pathname : "#/" + id);
