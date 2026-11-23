@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Premier League Match Prediction</title>
+<link rel="icon" href="logo.jpg">
 <meta name="description" content="Home, draw and away forecasts for every Premier League match, from a model retrained every week, with its track record.">
 <style>
   @font-face { font-family: "Barlow Condensed"; font-weight: 500; font-display: swap; src: url("fonts/barlow-condensed-500-latin.woff2") format("woff2"); }
@@ -65,7 +66,8 @@
   /* band */
   .band { background: var(--band); color: var(--band-ink); }
   .band-inner { max-width: 1180px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 32px; min-height: 64px; }
-  .name { font: 800 22px/1 var(--cond); text-transform: uppercase; letter-spacing: 0.01em; white-space: nowrap; }
+  .name { font: 800 22px/1 var(--cond); text-transform: uppercase; letter-spacing: 0.01em; white-space: nowrap; display: flex; align-items: center; gap: 12px; }
+  .logo { display: block; width: auto; height: 36px; flex: none; }
   .tabs { display: flex; gap: 2px; align-self: stretch; }
   .tab {
     font: 600 15px var(--text); color: var(--band-ink-2); background: none; border: 0; cursor: pointer;
@@ -74,7 +76,11 @@
   .tab:hover { color: var(--band-ink); }
   .tab[aria-selected="true"] { color: var(--band-ink); border-bottom-color: var(--band-ink); }
   .tab:focus-visible { outline-color: #fff; outline-offset: -4px; }
-  .stamp { margin-left: auto; font-size: 13px; color: var(--band-ink-2); white-space: nowrap; }
+  .stamp { margin-left: auto; display: flex; gap: 18px; white-space: nowrap; }
+  .upd { display: flex; flex-direction: column; gap: 3px; }
+  .upd + .upd { padding-left: 18px; border-left: 1px solid rgba(255, 255, 255, 0.3); }
+  .upd .k { font: 600 11px/1 var(--cond); text-transform: uppercase; letter-spacing: 0.08em; color: var(--band-ink-2); }
+  .upd .v { font: 700 18px/1 var(--cond); text-transform: uppercase; letter-spacing: 0.02em; color: var(--band-ink); }
 
   main { max-width: 1180px; margin: 0 auto; padding: 32px 24px 64px; }
   .page-title { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin: 0 0 20px; }
@@ -146,10 +152,29 @@
   .stub-section p { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
 
   /* teams */
-  .team-panel { padding: 18px 20px 20px; }
+  .team-pick { display: flex; align-items: stretch; gap: 8px; padding: 14px 20px; border-bottom: 2px solid var(--red); }
+  .team-pick .step {
+    flex: none; width: 44px; height: 44px; align-self: center; display: grid; place-items: center; cursor: pointer;
+    background: none; color: var(--ink); border: 1px solid var(--rule); transition: background-color 90ms ease-out;
+  }
+  .team-pick .step:hover { background: var(--hover); border-color: var(--red); }
+  .team-pick .step svg { width: 16px; height: 16px; }
+  .team-title { flex: 1; min-width: 0; text-align: center; }
+  .team-name { font: 800 32px/1 var(--cond); text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .team-sub { color: var(--ink-2); font-size: 13px; margin-top: 4px; }
+  #team-body { padding: 16px 20px 20px; }
+  .next-match {
+    display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 14px; width: 100%; margin: 0 0 16px; padding: 10px 12px;
+    font: 14px var(--text); color: var(--ink-2); text-align: left; cursor: pointer;
+    background: var(--hover); border: 1px solid var(--rule); transition: border-color 90ms ease-out;
+  }
+  .next-match:hover { border-color: var(--red); }
+  .next-match .k { font: 600 12px var(--cond); text-transform: uppercase; letter-spacing: 0.08em; color: var(--red); }
+  .next-match strong { color: var(--ink); }
+  .next-match .odds { display: flex; gap: 12px; }
+  .next-match .odds b { font-size: 17px; color: var(--ink); }
+  .next-match .go { margin-left: auto; font-size: 13px; color: var(--red-ink); text-decoration: underline; text-underline-offset: 3px; }
   .team-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
-  .team-name { font: 800 34px/1 var(--cond); text-transform: uppercase; }
-  .team-sub { color: var(--ink-2); font-size: 14px; margin-top: 4px; }
   .team-figs { display: flex; gap: 28px; }
   .team-figs div { font-size: 12px; color: var(--muted); font-weight: 600; }
   .team-figs .fig { display: block; font-size: 30px; font-weight: 700; color: var(--ink); line-height: 1.1; }
@@ -167,7 +192,8 @@
 
   /* charts */
   svg { display: block; overflow: visible; }
-  svg text { font: 12px var(--text); fill: var(--muted); }
+  svg text { font: 13px var(--text); fill: var(--ink-2); }
+  svg .axis { font-weight: 600; fill: var(--ink); }
   svg .lbl { fill: var(--ink-2); font-weight: 600; }
   svg .grid { stroke: var(--rule-soft); }
   svg .base { stroke: var(--muted); stroke-dasharray: 3 4; }
@@ -190,7 +216,10 @@
   .read .coupon tr.best td { font-weight: 700; color: var(--ink); background: var(--rule-soft); }
   .read ul { padding-left: 18px; }
 
-  footer { max-width: 1180px; margin: 0 auto; padding: 0 24px 40px; color: var(--muted); font-size: 13px; }
+  footer { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+  .footer-inner { border-top: 2px solid var(--red); padding: 18px 0 40px; display: flex; align-items: baseline; gap: 10px; }
+  .footer-inner .made { font: 600 12px/1 var(--cond); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .footer-inner .who { font: 800 20px/1 var(--cond); text-transform: uppercase; letter-spacing: 0.02em; color: var(--ink); }
 
   @media (max-width: 960px) {
     .split, .split.wide, .how-split { grid-template-columns: 1fr; }
@@ -198,10 +227,16 @@
   }
   @media (max-width: 640px) {
     .band-inner { flex-wrap: wrap; gap: 0 16px; padding: 12px 16px 0; }
-    .name { font-size: 19px; width: 100%; }
-    .stamp { display: none; }
+    .name { font-size: 19px; width: 100%; gap: 10px; }
+    .logo { height: 30px; }
+    .stamp { order: 1; width: 100%; margin: 10px 0 4px; gap: 14px; }
+    .upd { flex-direction: row; align-items: baseline; gap: 6px; }
+    .upd + .upd { padding-left: 14px; }
+    .upd .v { font-size: 15px; }
+    .tabs { order: 2; }
     .tabs { margin-left: -14px; overflow-x: auto; min-height: 44px; }
     main { padding: 20px 12px 48px; }
+    footer { padding: 0 12px; }
     h1 { font-size: 34px; }
     .sheet-head { padding: 12px 14px; }
     .coupon .no { width: 34px; font-size: 17px; }
@@ -221,6 +256,9 @@
     .settled td.match { white-space: normal; overflow-wrap: anywhere; }
     .hide-sm { display: none; }
     .team-figs { gap: 18px; }
+    .team-pick { padding: 12px 14px; }
+    .team-name { font-size: 26px; }
+    #team-body { padding: 14px; }
   }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
@@ -228,7 +266,7 @@
 <body>
 <header class="band">
   <div class="band-inner">
-    <div class="name">Premier League Match Prediction</div>
+    <div class="name"><img class="logo" src="logo-white.png" alt="" width="29" height="36">Premier League Match Prediction</div>
     <nav class="tabs" role="tablist" aria-label="Sections">
       <button class="tab" role="tab" id="tab-coupon" aria-controls="coupon" aria-selected="true">Coupon</button>
       <button class="tab" role="tab" id="tab-results" aria-controls="results" aria-selected="false" tabindex="-1">Results</button>
@@ -264,10 +302,17 @@
   </section>
 
   <section id="teams" role="tabpanel" aria-labelledby="tab-teams" hidden>
-    <div class="page-title"><h1>Teams</h1><p class="lede">Strength ratings and chance quality behind every forecast. Pick a team in the table.</p></div>
+    <div class="page-title"><h1>Teams</h1><p class="lede">How strong each team is right now, and how many chances they create and give away.</p></div>
     <div class="split wide">
       <div>
-        <div class="sheet team-panel" id="team-panel"></div>
+        <div class="sheet team-panel" id="team-panel">
+          <div class="team-pick">
+            <button class="step" id="team-prev" type="button" aria-label="Previous team"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+            <div class="team-title" aria-live="polite"><div class="team-name" id="team-name"></div><div class="team-sub" id="team-sub"></div></div>
+            <button class="step" id="team-next" type="button" aria-label="Next team"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+          </div>
+          <div id="team-body"></div>
+        </div>
         <div class="sheet">
           <div class="sheet-head"><h2>Attack and defence</h2><p>xG created and conceded per game, last 20 league matches</p></div>
           <div style="padding:12px 20px 20px"><div id="xg-chart"></div></div>
@@ -337,7 +382,7 @@
   </section>
 </main>
 
-<footer id="footer">Forecasts are probabilities, not certainties, and not betting advice.</footer>
+<footer id="footer"><div class="footer-inner"><span class="made">Made by</span><span class="who">Ritesh Pokharel</span></div></footer>
 <div id="tip" role="tooltip"></div>
 
 <script>const DATA = /*DATA*/null;</script>
@@ -401,13 +446,15 @@ function cells(m, { result = null } = {}) {
 }
 
 /* ---------- coupon ---------- */
+let openMatch = null;           // the one fixture whose detail row is showing
+const fixtureRows = new Map();  // fixture -> { row, toggle }
 function renderCoupon() {
   const fx = DATA.fixtures, body = document.getElementById("coupon-body");
   const rounds = [...new Set(fx.map(m => m.round).filter(Boolean))].sort((a, b) => a - b);
   const main = rounds[rounds.length - 1];
   document.getElementById("coupon-title").textContent = main ? `Gameweek ${main}` : "This week";
   const zone = fx[0] && fx[0].kickoff.endsWith("+01:00") ? "BST" : "GMT";
-  document.getElementById("coupon-sub").textContent = `${fx.length} matches · kick-off in UK time (${zone}) · select a match for details`;
+  document.getElementById("coupon-sub").textContent = `Kick-offs in UK time (${zone}) · Select a match for details`;
 
   let lastDay = null, n = 0;
   for (const m of fx) {
@@ -422,16 +469,23 @@ function renderCoupon() {
         el("span", { class: "ko-sm", text: `${m.kickoff.slice(11, 16)}${m.odds ? "" : " †"}` })),
       ...cells(m));
     const detail = el("tr", { class: "detail", hidden: true }, el("td", { colspan: 6 }));
-    const toggle = () => {
-      const open = detail.hidden;
+    const setOpen = open => {
       detail.hidden = !open;
       row.setAttribute("aria-expanded", String(open));
       if (open) renderMatchDetail(detail.firstChild, m);
     };
+    const toggle = () => {
+      const opening = detail.hidden;
+      if (openMatch) openMatch.setOpen(false);
+      openMatch = opening ? { m, row, setOpen } : null;
+      if (opening) setOpen(true);
+    };
+    fixtureRows.set(m, { row, toggle });
     row.addEventListener("click", toggle);
     row.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
     body.append(row, detail);
   }
+  if (fx.length) fixtureRows.get(fx[0]).toggle();
   const noOdds = fx.filter(m => !m.odds).length;
   document.getElementById("coupon-foot").textContent =
     "Filled box: the model's pick. Numbers are percentage chances and add up to 100." +
@@ -605,7 +659,7 @@ function lineChart(box, lines, H = 220, { names = false } = {}) {
   if (!lines.length) return;
   const endText = (l, p) => names ? `${l.name} ${Math.round(p.elo)}` : String(Math.round(p.elo));
   const longest = Math.max(...lines.map(l => endText(l, l.pts[l.pts.length - 1]).length));
-  const m = { t: 10, r: 16 + longest * 7, b: 24, l: 44 };
+  const m = { t: 10, r: 16 + longest * 7.5, b: 26, l: 46 };
   const all = lines.flatMap(l => l.pts);
   const t0 = Math.min(...all.map(p => p.t)), t1 = Math.max(...all.map(p => p.t));
   const lo = Math.min(1500, ...all.map(p => p.elo)) - 12, hi = Math.max(1500, ...all.map(p => p.elo)) + 12;
@@ -655,8 +709,8 @@ function renderTable() {
       el("td", {}, el("span", { class: "fig", style: "font-weight:700", text: t.Pts })),
       el("td", {}, el("span", { class: "fig", text: t.Elo })),
       el("td", {}, el("span", { class: "fig", text: signed(c) })));
-    row.addEventListener("click", () => select(t.Team));
-    row.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(t.Team); } });
+    row.addEventListener("click", () => { select(t.Team); revealPanel(); });
+    row.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(t.Team); revealPanel(); } });
     return row;
   }));
 }
@@ -664,9 +718,26 @@ function renderTable() {
 function renderTeamPanel() {
   const t = teamRow(selected), c = change(selected), chart = el("div", { style: "margin-top:14px" });
   const rank = [...DATA.table].sort((a, b) => b.Elo - a.Elo).findIndex(r => r.Team === selected) + 1;
-  document.getElementById("team-panel").replaceChildren(
+  document.getElementById("team-name").textContent = t.Team;
+  document.getElementById("team-sub").textContent = `${ordinal(t.Pos)} in the table · ${ordinal(rank)} by rating`;
+  const next = DATA.fixtures.find(f => f.home === selected || f.away === selected);
+  let nextEl = null;
+  if (next) {
+    const home = next.home === selected, w = wholePercents([next.pH, next.pD, next.pA]);
+    const [win, draw, loss] = home ? w : [w[2], w[1], w[0]];
+    nextEl = el("button", { class: "next-match", type: "button" },
+      el("span", { class: "k", text: "Next match" }),
+      el("span", { class: "opp" }, `${fmt(next.kickoff, { weekday: "short", day: "numeric", month: "short" })} ${next.kickoff.slice(11, 16)} · `,
+        el("strong", { text: `${home ? "v" : "at"} ${home ? next.away : next.home}` })),
+      el("span", { class: "odds" },
+        el("span", {}, "Win ", el("b", { class: "fig", text: win })), el("span", {}, "Draw ", el("b", { class: "fig", text: draw })),
+        el("span", {}, "Lose ", el("b", { class: "fig", text: loss }))),
+      el("span", { class: "go", text: "See on coupon" }));
+    nextEl.addEventListener("click", () => openFixture(next));
+  }
+  document.getElementById("team-body").replaceChildren(
+    nextEl,
     el("div", { class: "team-top" },
-      el("div", {}, el("div", { class: "team-name", text: t.Team }), el("div", { class: "team-sub", text: `${ordinal(t.Pos)} in the table · ${ordinal(rank)} by rating` })),
       el("div", { class: "team-figs" },
         el("div", {}, "Rating", el("span", { class: "fig", text: t.Elo })),
         el("div", {}, "Last 5 games", el("span", { class: "fig", text: signed(c) })),
@@ -681,16 +752,16 @@ function renderXg() {
   const box = document.getElementById("xg-chart"), W = box.clientWidth;
   if (!W) return;
   const teams = DATA.table.filter(t => t.xgf != null && t.xga != null);
-  const H = W < 560 ? Math.round(W * 1.2) : Math.min(400, Math.max(300, W * 0.62)), m = { t: 12, r: 12, b: 40, l: 44 };
+  const H = W < 560 ? Math.round(W * 1.2) : Math.min(400, Math.max(300, W * 0.62)), m = { t: 12, r: 12, b: 50, l: 58 };
   const xs = teams.map(t => t.xgf), ys = teams.map(t => t.xga);
   const xlo = Math.min(...xs) - 0.1, xhi = Math.max(...xs) + 0.1, ylo = Math.min(...ys) - 0.1, yhi = Math.max(...ys) + 0.1;
   const x = v => m.l + (v - xlo) / (xhi - xlo) * (W - m.l - m.r);
   const y = v => m.t + (v - ylo) / (yhi - ylo) * (H - m.t - m.b);
   const svg = el("svg:svg", { width: W, height: H, role: "img", "aria-label": "xG created against xG conceded per game, per team" });
-  for (const v of niceTicks(xlo, xhi, 6)) svg.append(el("svg:line", { class: "grid", x1: x(v), x2: x(v), y1: m.t, y2: H - m.b }), el("svg:text", { x: x(v), y: H - m.b + 16, "text-anchor": "middle", text: v.toFixed(1) }));
-  for (const v of niceTicks(ylo, yhi, 5)) svg.append(el("svg:line", { class: "grid", x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }), el("svg:text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end", text: v.toFixed(1) }));
-  svg.append(el("svg:text", { x: (m.l + W - m.r) / 2, y: H - 4, "text-anchor": "middle", text: "xG created per game" }),
-    el("svg:text", { x: -(m.t + H - m.b) / 2, y: 12, transform: "rotate(-90)", "text-anchor": "middle", text: "xG conceded per game (fewer conceded, higher up)" }));
+  for (const v of niceTicks(xlo, xhi, 6)) svg.append(el("svg:line", { class: "grid", x1: x(v), x2: x(v), y1: m.t, y2: H - m.b }), el("svg:text", { x: x(v), y: H - m.b + 20, "text-anchor": "middle", text: v.toFixed(1) }));
+  for (const v of niceTicks(ylo, yhi, 5)) svg.append(el("svg:line", { class: "grid", x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }), el("svg:text", { x: m.l - 10, y: y(v) + 4, "text-anchor": "end", text: v.toFixed(1) }));
+  svg.append(el("svg:text", { class: "axis", x: (m.l + W - m.r) / 2, y: H - 6, "text-anchor": "middle", text: "Better attack: more xG created per game →" }),
+    el("svg:text", { class: "axis", x: -(m.t + H - m.b) / 2, y: 16, transform: "rotate(-90)", "text-anchor": "middle", text: "Better defence: less xG conceded per game →" }));
   const pts = teams.map(t => ({ t, x: x(t.xgf), y: y(t.xga) }));
   for (const p of pts) {
     const on = p.t.Team === selected;
@@ -707,7 +778,7 @@ function renderXg() {
     const on = p.t.Team === selected;
     const label = el("svg:text", { class: "lbl", text: p.t.Team, style: on ? "fill:var(--red);font-weight:700" : null });
     svg.append(label);
-    const w = label.getComputedTextLength(), h = 13;
+    const w = label.getComputedTextLength(), h = 15;
     const spots = [];
     for (const r of [9, 22, 36]) {
       spots.push([p.x + r, p.y - h / 2, "start", r], [p.x - r - w, p.y - h / 2, "end", r],
@@ -718,7 +789,7 @@ function renderXg() {
     const fits = ([sx, sy]) => {
       const b = { x: sx, y: sy, w, h };
       return sx >= m.l && sx + w <= W - m.r && sy >= 0 && sy + h <= H - m.b
-        && !pts.some(q => over(b, { x: q.x - 6, y: q.y - 6, w: 12, h: 12 })) && !placed.some(o => over(b, o));
+        && !pts.some(q => over(b, { x: q.x - 7, y: q.y - 7, w: 14, h: 14 })) && !placed.some(o => over(b, { x: o.x - 6, y: o.y - 1, w: o.w + 12, h: o.h + 2 }));
     };
     const [sx, sy, anchor, r] = spots.find(fits) || spots.find(([x0, y0]) => x0 >= m.l && x0 + w <= W - m.r && y0 >= 0) || spots[0];
     placed.push({ x: sx, y: sy, w, h });
@@ -736,6 +807,28 @@ function select(team) {
   selected = team;
   renderTable(); renderTeamPanel(); renderXg();
 }
+
+// On one-column layouts the table sits below the panel, so bring the panel back into view.
+function revealPanel() {
+  const panel = document.getElementById("team-panel");
+  if (panel.getBoundingClientRect().top < 0) panel.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+}
+
+function openFixture(m) {
+  show("coupon");
+  const f = fixtureRows.get(m);
+  if (openMatch?.m !== m) f.toggle();
+  f.row.scrollIntoView({ block: "start", behavior: reduceMotion ? "auto" : "smooth" });
+  f.row.focus({ preventScroll: true });
+}
+
+function stepTeam(d) {
+  const i = DATA.table.findIndex(t => t.Team === selected), n = DATA.table.length;
+  select(DATA.table[(i + d + n) % n].Team);
+}
+
+document.getElementById("team-prev").addEventListener("click", () => stepTeam(-1));
+document.getElementById("team-next").addEventListener("click", () => stepTeam(1));
 
 /* ---------- how it works ---------- */
 const TESTED = [
@@ -781,6 +874,7 @@ function show(id, focus = false) {
   if (id === "teams") { renderTeamPanel(); renderXg(); }
   if (id === "results") renderWeekly();
   if (id === "how") renderModelCharts();
+  history.replaceState(null, "", id === "coupon" ? location.pathname : "#/" + id);
   scrollTo(0, 0);
 }
 tabs.forEach((t, i) => {
@@ -791,12 +885,25 @@ tabs.forEach((t, i) => {
   });
 });
 
-document.getElementById("stamp").textContent = `Results to ${fmt(DATA.updated, { day: "numeric", month: "short" })} · updated Tue and Fri`;
+// Updates run on Tuesday 06:00 and Friday 08:00 UK time (.github/workflows/weekly-predictions.yml).
+function nextUpdate() {
+  const now = new Date(), d = new Date(now);
+  for (let i = 0; i < 8; i++, d.setDate(d.getDate() + 1)) {
+    const wd = d.getDay();
+    if ((wd === 2 || wd === 5) && (i > 0 || now.getHours() < (wd === 2 ? 6 : 8))) return i === 0 ? "Today" : d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+  }
+}
+const upd = (k, v) => el("div", { class: "upd" }, el("span", { class: "k", text: k }), el("span", { class: "v", text: v }));
+document.getElementById("stamp").replaceChildren(
+  upd("Results to", fmt(DATA.updated, { day: "numeric", month: "short" })),
+  upd("Next auto-update", nextUpdate()));
 selected = DATA.table[0].Team;
 renderCoupon();
 renderResults();
 renderTable();
 flipIn(document.getElementById("coupon-body"));
+// Tab links look like #/teams (not #teams, which would make the browser jump past the header).
+if (tabs.some(t => "#/" + t.getAttribute("aria-controls") === location.hash)) show(location.hash.slice(2));
 document.fonts.ready.then(() => { if (!document.getElementById("teams").hidden) renderXg(); });
 
 let resizeTimer;
@@ -806,6 +913,7 @@ addEventListener("resize", () => {
     if (!document.getElementById("teams").hidden) { renderTeamPanel(); renderXg(); }
     if (!document.getElementById("results").hidden) renderWeekly();
     if (!document.getElementById("how").hidden) renderModelCharts();
+    if (!document.getElementById("coupon").hidden && openMatch) openMatch.setOpen(true);
   }, 150);
 });
 </script>
