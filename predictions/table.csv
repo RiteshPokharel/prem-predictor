@@ -1,21 +1,21 @@
 Team,Pos,P,W,D,L,GF,GA,GD,Pts,Elo,xG for,xG against,Form,Last5
-Arsenal,1,11,9,1,1,17,7,10,28,1668,1.7,0.83,WWWWD,A Nott'm Forest 1-0|H Everton 2-0|A Liverpool 1-0|H Hull 1-0|A Newcastle 2-2
-Brighton,2,11,7,1,3,26,9,17,22,1563,1.86,1.26,WLWWL,H Crystal Palace 5-0|A Liverpool 0-2|A Man City 1-0|H Brentford 2-0|A Hull 0-2
-Man City,3,11,7,1,3,22,14,8,22,1631,2.02,1.28,WLLLD,H Ipswich 3-2|A Aston Villa 1-2|H Brighton 0-1|A Nott'm Forest 1-3|H Fulham 1-1
-Liverpool,4,11,6,3,2,18,10,8,21,1584,1.51,1.44,WWLWW,A Brentford 2-1|H Brighton 2-0|H Arsenal 0-1|A Crystal Palace 3-1|H Man United 4-0
-Bournemouth,5,11,5,3,3,18,14,4,18,1545,1.79,1.31,WWWWW,H Sunderland 2-0|A Man United 3-0|H Leeds 2-0|A Ipswich 2-1|H Nott'm Forest 2-0
-Brentford,6,11,4,5,2,20,11,9,17,1530,1.55,1.53,LDWLW,H Liverpool 1-2|A Hull 1-1|H Nott'm Forest 2-0|A Brighton 0-2|H Everton 4-0
-Leeds,7,11,4,5,2,14,9,5,17,1502,1.37,1.29,DDLWW,H Man United 1-1|A Sunderland 0-0|A Bournemouth 0-2|H Tottenham 1-0|A Chelsea 4-1
-Chelsea,8,11,5,1,5,20,20,0,16,1498,1.24,1.52,WLWLL,A Everton 2-0|H Tottenham 0-2|H Man United 2-0|A Sunderland 0-1|H Leeds 1-4
-Everton,9,11,4,4,3,12,14,-2,16,1480,1.35,1.53,LLWWL,H Chelsea 0-2|A Arsenal 0-2|A Newcastle 1-0|H Coventry 3-1|A Brentford 0-4
-Tottenham,10,11,4,3,4,12,11,1,15,1462,1.2,1.09,WWWLW,H Coventry 3-1|A Chelsea 2-0|H Crystal Palace 2-0|A Leeds 0-1|H Ipswich 2-0
-Hull,11,11,3,5,3,13,11,2,14,1477,0.95,1.46,LDDLW,A Fulham 0-1|H Brentford 1-1|H Ipswich 2-2|A Arsenal 0-1|H Brighton 2-0
-Aston Villa,12,11,3,5,3,14,17,-3,14,1521,1.43,1.6,WWDDD,A Newcastle 1-0|H Man City 2-1|H Fulham 1-1|A Man United 4-4|H Sunderland 0-0
-Newcastle,13,11,3,4,4,15,18,-3,13,1490,1.3,1.7,LWLDD,H Aston Villa 0-1|A Crystal Palace 2-0|H Everton 0-1|A Fulham 1-1|H Arsenal 2-2
-Coventry,14,11,4,0,7,13,21,-8,12,1411,0.96,1.52,LLWLW,A Tottenham 1-3|H Fulham 0-1|H Sunderland 3-1|A Everton 1-3|H Crystal Palace 3-2
-Fulham,15,11,2,5,4,11,13,-2,11,1481,1.42,1.36,WWDDD,H Hull 1-0|A Coventry 1-0|A Aston Villa 1-1|H Newcastle 1-1|A Man City 1-1
-Ipswich,16,11,3,2,6,15,22,-7,11,1376,1.09,1.9,LDDLL,A Man City 2-3|H Nott'm Forest 1-1|A Hull 2-2|H Bournemouth 1-2|A Tottenham 0-2
-Nott'm Forest,17,11,2,3,6,9,15,-6,9,1471,1.5,1.3,LDLWL,H Arsenal 0-1|A Ipswich 1-1|A Brentford 0-2|H Man City 3-1|A Bournemouth 0-2
-Sunderland,18,11,2,3,6,8,17,-9,9,1446,1.44,1.5,LDLWD,A Bournemouth 0-2|H Leeds 0-0|A Coventry 1-3|H Chelsea 1-0|A Aston Villa 0-0
-Man United,19,11,1,5,5,14,23,-9,8,1498,1.73,1.63,DLLDL,A Leeds 1-1|H Bournemouth 0-3|A Chelsea 0-2|H Aston Villa 4-4|A Liverpool 0-4
-Crystal Palace,20,11,2,1,8,12,27,-15,7,1418,1.42,1.86,LLLLL,A Brighton 0-5|H Newcastle 0-2|A Tottenham 0-2|H Liverpool 1-3|A Coventry 2-3
+Arsenal,1,11,9,1,1,17,7,10,28,1668,1.68,0.87,WWWWD,A Nott'm Forest 1-0|H Everton 2-0|A Liverpool 1-0|H Hull 1-0|A Newcastle 2-2
+Brighton,2,11,7,1,3,26,9,17,22,1563,1.88,1.29,WLWWL,H Crystal Palace 5-0|A Liverpool 0-2|A Man City 1-0|H Brentford 2-0|A Hull 0-2
+Man City,3,11,7,1,3,22,14,8,22,1631,2.02,1.25,WLLLD,H Ipswich 3-2|A Aston Villa 1-2|H Brighton 0-1|A Nott'm Forest 1-3|H Fulham 1-1
+Liverpool,4,11,6,3,2,18,10,8,21,1584,1.65,1.4,WWLWW,A Brentford 2-1|H Brighton 2-0|H Arsenal 0-1|A Crystal Palace 3-1|H Man United 4-0
+Bournemouth,5,11,5,3,3,18,14,4,18,1545,1.84,1.34,WWWWW,H Sunderland 2-0|A Man United 3-0|H Leeds 2-0|A Ipswich 2-1|H Nott'm Forest 2-0
+Brentford,6,11,4,5,2,20,11,9,17,1530,1.6,1.47,LDWLW,H Liverpool 1-2|A Hull 1-1|H Nott'm Forest 2-0|A Brighton 0-2|H Everton 4-0
+Leeds,7,11,4,5,2,14,9,5,17,1502,1.44,1.26,DDLWW,H Man United 1-1|A Sunderland 0-0|A Bournemouth 0-2|H Tottenham 1-0|A Chelsea 4-1
+Chelsea,8,11,5,1,5,20,20,0,16,1498,1.21,1.58,WLWLL,A Everton 2-0|H Tottenham 0-2|H Man United 2-0|A Sunderland 0-1|H Leeds 1-4
+Everton,9,11,4,4,3,12,14,-2,16,1480,1.3,1.58,LLWWL,H Chelsea 0-2|A Arsenal 0-2|A Newcastle 1-0|H Coventry 3-1|A Brentford 0-4
+Tottenham,10,11,4,3,4,12,11,1,15,1462,1.27,1.06,WWWLW,H Coventry 3-1|A Chelsea 2-0|H Crystal Palace 2-0|A Leeds 0-1|H Ipswich 2-0
+Hull,11,11,3,5,3,13,11,2,14,1477,1.03,1.53,LDDLW,A Fulham 0-1|H Brentford 1-1|H Ipswich 2-2|A Arsenal 0-1|H Brighton 2-0
+Aston Villa,12,11,3,5,3,14,17,-3,14,1521,1.41,1.53,WWDDD,A Newcastle 1-0|H Man City 2-1|H Fulham 1-1|A Man United 4-4|H Sunderland 0-0
+Newcastle,13,11,3,4,4,15,18,-3,13,1490,1.32,1.69,LWLDD,H Aston Villa 0-1|A Crystal Palace 2-0|H Everton 0-1|A Fulham 1-1|H Arsenal 2-2
+Coventry,14,11,4,0,7,13,21,-8,12,1411,1.06,1.54,LLWLW,A Tottenham 1-3|H Fulham 0-1|H Sunderland 3-1|A Everton 1-3|H Crystal Palace 3-2
+Fulham,15,11,2,5,4,11,13,-2,11,1481,1.39,1.38,WWDDD,H Hull 1-0|A Coventry 1-0|A Aston Villa 1-1|H Newcastle 1-1|A Man City 1-1
+Ipswich,16,11,3,2,6,15,22,-7,11,1376,1.06,1.93,LDDLL,A Man City 2-3|H Nott'm Forest 1-1|A Hull 2-2|H Bournemouth 1-2|A Tottenham 0-2
+Nott'm Forest,17,11,2,3,6,9,15,-6,9,1471,1.52,1.38,LDLWL,H Arsenal 0-1|A Ipswich 1-1|A Brentford 0-2|H Man City 3-1|A Bournemouth 0-2
+Sunderland,18,11,2,3,6,8,17,-9,9,1446,1.38,1.47,LDLWD,A Bournemouth 0-2|H Leeds 0-0|A Coventry 1-3|H Chelsea 1-0|A Aston Villa 0-0
+Man United,19,11,1,5,5,14,23,-9,8,1498,1.68,1.77,DLLDL,A Leeds 1-1|H Bournemouth 0-3|A Chelsea 0-2|H Aston Villa 4-4|A Liverpool 0-4
+Crystal Palace,20,11,2,1,8,12,27,-15,7,1418,1.43,1.87,LLLLL,A Brighton 0-5|H Newcastle 0-2|A Tottenham 0-2|H Liverpool 1-3|A Coventry 2-3

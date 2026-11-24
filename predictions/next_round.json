@@ -6,9 +6,9 @@
    "round": 12,
    "home": "Nott'm Forest",
    "away": "Chelsea",
-   "pH": 0.419,
-   "pD": 0.2658,
-   "pA": 0.3152,
+   "pH": 0.4148,
+   "pD": 0.2631,
+   "pA": 0.3221,
    "odds": false
   },
   {
@@ -16,9 +16,9 @@
    "round": 12,
    "home": "Leeds",
    "away": "Coventry",
-   "pH": 0.5626,
-   "pD": 0.2489,
-   "pA": 0.1885,
+   "pH": 0.5788,
+   "pD": 0.2425,
+   "pA": 0.1787,
    "odds": false
   },
   {
@@ -26,9 +26,9 @@
    "round": 12,
    "home": "Man United",
    "away": "Brentford",
-   "pH": 0.4027,
-   "pD": 0.2501,
-   "pA": 0.3472,
+   "pH": 0.3764,
+   "pD": 0.2496,
+   "pA": 0.374,
    "odds": false
   },
   {
@@ -36,9 +36,9 @@
    "round": 12,
    "home": "Ipswich",
    "away": "Aston Villa",
-   "pH": 0.1859,
-   "pD": 0.2307,
-   "pA": 0.5834,
+   "pH": 0.1759,
+   "pD": 0.2284,
+   "pA": 0.5956,
    "odds": false
   },
   {
@@ -46,9 +46,9 @@
    "round": 12,
    "home": "Everton",
    "away": "Liverpool",
-   "pH": 0.2778,
-   "pD": 0.257,
-   "pA": 0.4652,
+   "pH": 0.2709,
+   "pD": 0.2552,
+   "pA": 0.4739,
    "odds": false
   },
   {
@@ -56,9 +56,9 @@
    "round": 12,
    "home": "Crystal Palace",
    "away": "Hull",
-   "pH": 0.2769,
-   "pD": 0.2549,
-   "pA": 0.4681,
+   "pH": 0.2862,
+   "pD": 0.2533,
+   "pA": 0.4605,
    "odds": false
   },
   {
@@ -66,9 +66,9 @@
    "round": 12,
    "home": "Sunderland",
    "away": "Tottenham",
-   "pH": 0.3619,
-   "pD": 0.2731,
-   "pA": 0.365,
+   "pH": 0.3611,
+   "pD": 0.2749,
+   "pA": 0.364,
    "odds": false
   },
   {
@@ -76,9 +76,9 @@
    "round": 12,
    "home": "Brighton",
    "away": "Newcastle",
-   "pH": 0.6131,
-   "pD": 0.2207,
-   "pA": 0.1662,
+   "pH": 0.6112,
+   "pD": 0.2204,
+   "pA": 0.1684,
    "odds": false
   },
   {
@@ -87,8 +87,8 @@
    "home": "Fulham",
    "away": "Bournemouth",
    "pH": 0.3595,
-   "pD": 0.2649,
-   "pA": 0.3756,
+   "pD": 0.2639,
+   "pA": 0.3766,
    "odds": false
   },
   {
@@ -96,9 +96,9 @@
    "round": 12,
    "home": "Arsenal",
    "away": "Man City",
-   "pH": 0.5996,
-   "pD": 0.2329,
-   "pA": 0.1675,
+   "pH": 0.5909,
+   "pD": 0.2353,
+   "pA": 0.1737,
    "odds": false
   }
  ]
