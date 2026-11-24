@@ -1,24 +1,14 @@
 {
- "results_up_to": "2026-11-22",
+ "results_up_to": "2026-11-23",
  "matches": [
-  {
-   "kickoff": "2026-11-23T20:00:00+00:00",
-   "round": 11,
-   "home": "Brentford",
-   "away": "Everton",
-   "pH": 0.4298,
-   "pD": 0.2765,
-   "pA": 0.2937,
-   "odds": true
-  },
   {
    "kickoff": "2026-11-27T20:00:00+00:00",
    "round": 12,
    "home": "Nott'm Forest",
    "away": "Chelsea",
-   "pH": 0.4188,
-   "pD": 0.2659,
-   "pA": 0.3153,
+   "pH": 0.419,
+   "pD": 0.2658,
+   "pA": 0.3152,
    "odds": false
   },
   {
@@ -26,9 +16,9 @@
    "round": 12,
    "home": "Leeds",
    "away": "Coventry",
-   "pH": 0.5623,
-   "pD": 0.2491,
-   "pA": 0.1886,
+   "pH": 0.5626,
+   "pD": 0.2489,
+   "pA": 0.1885,
    "odds": false
   },
   {
@@ -36,9 +26,9 @@
    "round": 12,
    "home": "Man United",
    "away": "Brentford",
-   "pH": 0.4192,
-   "pD": 0.2499,
-   "pA": 0.3309,
+   "pH": 0.4027,
+   "pD": 0.2501,
+   "pA": 0.3472,
    "odds": false
   },
   {
@@ -46,9 +36,9 @@
    "round": 12,
    "home": "Ipswich",
    "away": "Aston Villa",
-   "pH": 0.1857,
-   "pD": 0.2308,
-   "pA": 0.5835,
+   "pH": 0.1859,
+   "pD": 0.2307,
+   "pA": 0.5834,
    "odds": false
   },
   {
@@ -56,9 +46,29 @@
    "round": 12,
    "home": "Everton",
    "away": "Liverpool",
-   "pH": 0.2978,
-   "pD": 0.2607,
-   "pA": 0.4415,
+   "pH": 0.2778,
+   "pD": 0.257,
+   "pA": 0.4652,
+   "odds": false
+  },
+  {
+   "kickoff": "2026-11-29T14:05:00+00:00",
+   "round": 12,
+   "home": "Crystal Palace",
+   "away": "Hull",
+   "pH": 0.2769,
+   "pD": 0.2549,
+   "pA": 0.4681,
+   "odds": false
+  },
+  {
+   "kickoff": "2026-11-29T14:05:00+00:00",
+   "round": 12,
+   "home": "Sunderland",
+   "away": "Tottenham",
+   "pH": 0.3619,
+   "pD": 0.2731,
+   "pA": 0.365,
    "odds": false
   },
   {
@@ -66,9 +76,9 @@
    "round": 12,
    "home": "Brighton",
    "away": "Newcastle",
-   "pH": 0.6129,
-   "pD": 0.2208,
-   "pA": 0.1663,
+   "pH": 0.6131,
+   "pD": 0.2207,
+   "pA": 0.1662,
    "odds": false
   },
   {
@@ -82,33 +92,13 @@
    "odds": false
   },
   {
-   "kickoff": "2026-11-29T14:05:00+00:00",
-   "round": 12,
-   "home": "Sunderland",
-   "away": "Tottenham",
-   "pH": 0.3615,
-   "pD": 0.2733,
-   "pA": 0.3653,
-   "odds": false
-  },
-  {
-   "kickoff": "2026-11-29T14:05:00+00:00",
-   "round": 12,
-   "home": "Crystal Palace",
-   "away": "Hull",
-   "pH": 0.2764,
-   "pD": 0.2551,
-   "pA": 0.4684,
-   "odds": false
-  },
-  {
    "kickoff": "2026-11-29T16:30:00+00:00",
    "round": 12,
    "home": "Arsenal",
    "away": "Man City",
-   "pH": 0.5999,
-   "pD": 0.2327,
-   "pA": 0.1674,
+   "pH": 0.5996,
+   "pD": 0.2329,
+   "pA": 0.1675,
    "odds": false
   }
  ]
